@@ -1,7 +1,9 @@
-<h1>Welcome to Resources</h1>
+<h1>Welcome to ResourcesWelcome to Resources</h1>
 
 <% if authenticated? %>
-  <p>Welcome!</p>
+
+
+<p>Welcome!Yourapplicationisup and running!</p>
   <%= link_to "Log Out", session_path, data: { turbo_method: :delete } %>
 <% else %>
   <%= link_to "Log In", new_session_path %>
