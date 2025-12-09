@@ -221,6 +221,11 @@ a {
 // ============================================
 
 .form {
+    // Form modifier for narrow forms (login, etc.)
+    &--narrow {
+        max-width: 20rem;
+    }
+
     &__field {
         margin-bottom: 15px;
     }
