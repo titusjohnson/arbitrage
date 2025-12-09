@@ -1,5 +1,5 @@
 ---
-description: Run the test suite
+description: Run the RSpec test suite
 ---
 
-Run the full test suite using `bin/rails test` and report the results. If there are any failures, analyze them and suggest fixes.
+Run the full RSpec test suite using `bundle exec rspec` and report the results. If there are any failures, analyze them and suggest fixes.

@@ -44,12 +44,26 @@ The application uses Rails 8's built-in authentication system, which includes:
 # Install dependencies
 bundle install
 
+# Copy environment variables template
+cp .env.example .env
+# Edit .env and set your developer credentials
+
 # Setup database
 bin/rails db:create db:migrate
+
+# Seed the database (creates developer account from .env)
+bin/rails db:seed
 
 # Start the development server
 bin/dev
 ```
+
+### Developer Account
+The seed file creates a developer account using credentials from your `.env` file:
+- Email: Set via `DEVELOPER_EMAIL` (default: titus@test.com)
+- Password: Set via `DEVELOPER_PASSWORD` (default: titustest)
+
+Running `bin/rails db:seed` is idempotent - it will create or update the developer account.
 
 ## Project Structure
 
@@ -90,14 +104,29 @@ When working on this project with Claude, please:
 
 ## Testing
 
-The project uses Rails' default testing framework (Minitest):
+The project uses RSpec for testing with FactoryBot for test data:
 ```bash
-# Run all tests
-bin/rails test
+# Run all specs
+bundle exec rspec
 
-# Run system tests
-bin/rails test:system
+# Run specific spec file
+bundle exec rspec spec/models/user_spec.rb
+
+# Run specs with documentation format
+bundle exec rspec --format documentation
 ```
+
+### Testing Setup
+- **RSpec**: Behavior-driven testing framework
+- **FactoryBot**: Factory-based test data generation
+- **Faker**: Fake data generation for tests
+- **Capybara & Selenium**: System/integration testing
+
+### Test Structure
+- `spec/models/` - Model specs
+- `spec/requests/` - Request specs (API/controller tests)
+- `spec/system/` - System specs (full-stack feature tests)
+- `spec/factories/` - FactoryBot factory definitions
 
 ## Code Quality
 
