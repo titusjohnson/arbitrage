@@ -5,7 +5,6 @@ require 'rails_helper'
 # Table name: games
 #
 #  id                 :integer          not null, primary key
-#  player_id          :integer          not null
 #  current_day        :integer          default(1), not null
 #  current_location_id:integer
 #  cash               :decimal(10, 2)   default(2000.0), not null
@@ -22,19 +21,15 @@ require 'rails_helper'
 #  total_sales        :integer          default(0), not null
 #  locations_visited  :integer          default(1), not null
 #  best_deal_profit   :decimal(10, 2)   default(0.0), not null
+#  restore_key        :string           not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #
 # Indexes
 #
-#  index_games_on_player_id             (player_id)
-#  index_games_on_player_id_and_status  (player_id,status)
-#  index_games_on_started_at            (started_at)
-#  index_games_on_status                (status)
-#
-# Foreign Keys
-#
-#  player_id  (player_id => users.id)
+#  index_games_on_restore_key  (restore_key) UNIQUE
+#  index_games_on_started_at   (started_at)
+#  index_games_on_status       (status)
 #
 RSpec.describe Game, type: :model do
   describe "scopes" do
@@ -44,25 +39,25 @@ RSpec.describe Game, type: :model do
 
     describe ".active" do
       it "returns only active games" do
-        expect(Game.active).to eq([active_game])
+        expect(Game.active).to eq([ active_game ])
       end
     end
 
     describe ".completed" do
       it "returns only completed games" do
-        expect(Game.completed).to eq([completed_game])
+        expect(Game.completed).to eq([ completed_game ])
       end
     end
 
     describe ".game_over" do
       it "returns only game over games" do
-        expect(Game.game_over).to eq([game_over_game])
+        expect(Game.game_over).to eq([ game_over_game ])
       end
     end
 
     describe ".finished" do
       it "returns both completed and game over games" do
-        expect(Game.finished).to match_array([completed_game, game_over_game])
+        expect(Game.finished).to match_array([ completed_game, game_over_game ])
       end
     end
 

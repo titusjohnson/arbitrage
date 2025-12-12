@@ -55,7 +55,7 @@ class Resource < ApplicationRecord
     price = range_midpoint + swing
 
     # Ensure price never goes below 1
-    [price, 1.0].max.round(2)
+    [ price, 1.0 ].max.round(2)
   end
 
   private

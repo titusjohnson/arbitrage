@@ -3,7 +3,6 @@
 # Table name: games
 #
 #  id                 :integer          not null, primary key
-#  player_id          :integer          not null
 #  current_day        :integer          default(1), not null
 #  current_location_id:integer
 #  cash               :decimal(10, 2)   default(2000.0), not null
@@ -20,24 +19,20 @@
 #  total_sales        :integer          default(0), not null
 #  locations_visited  :integer          default(1), not null
 #  best_deal_profit   :decimal(10, 2)   default(0.0), not null
+#  restore_key        :string           not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #
 # Indexes
 #
-#  index_games_on_player_id             (player_id)
-#  index_games_on_player_id_and_status  (player_id,status)
-#  index_games_on_started_at            (started_at)
-#  index_games_on_status                (status)
-#
-# Foreign Keys
-#
-#  player_id  (player_id => users.id)
+#  index_games_on_restore_key  (restore_key) UNIQUE
+#  index_games_on_started_at   (started_at)
+#  index_games_on_status       (status)
 #
 class Game < ApplicationRecord
-  belongs_to :player, class_name: "User", foreign_key: "player_id"
-
   # Validations
+  validates :restore_key, presence: true, uniqueness: true
+
   validates :current_day, presence: true, numericality: {
     only_integer: true,
     greater_than_or_equal_to: 1,
@@ -69,13 +64,14 @@ class Game < ApplicationRecord
   validates :started_at, presence: true
 
   # Callbacks
+  before_validation :set_restore_key, on: :create
   before_validation :set_started_at, on: :create
 
   # Scopes
   scope :active, -> { where(status: "active") }
   scope :completed, -> { where(status: "completed") }
   scope :game_over, -> { where(status: "game_over") }
-  scope :finished, -> { where(status: ["completed", "game_over"]) }
+  scope :finished, -> { where(status: [ "completed", "game_over" ]) }
   scope :recent, -> { order(started_at: :desc) }
 
   # Instance Methods
@@ -146,10 +142,14 @@ class Game < ApplicationRecord
   def calculate_final_score
     # Score formula: (net worth in millions × 2) capped at 100
     score = (net_worth / 1_000_000.0 * 2).to_i
-    [score, 100].min
+    [ score, 100 ].min
   end
 
   private
+
+  def set_restore_key
+    self.restore_key ||= SecureRandom.urlsafe_base64(32)
+  end
 
   def set_started_at
     self.started_at ||= Time.current

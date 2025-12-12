@@ -26,19 +26,19 @@ RSpec.describe Resource, type: :model do
 
     describe ".ordered_by_name" do
       it "returns resources in alphabetical order" do
-        expect(Resource.ordered_by_name.pluck(:name)).to eq(["Normal Goods", "Stable Goods", "Volatile Goods"])
+        expect(Resource.ordered_by_name.pluck(:name)).to eq([ "Normal Goods", "Stable Goods", "Volatile Goods" ])
       end
     end
 
     describe ".high_volatility" do
       it "returns resources with volatility >= 75" do
-        expect(Resource.high_volatility).to eq([high_vol_resource])
+        expect(Resource.high_volatility).to eq([ high_vol_resource ])
       end
     end
 
     describe ".low_volatility" do
       it "returns resources with volatility <= 25" do
-        expect(Resource.low_volatility).to eq([low_vol_resource])
+        expect(Resource.low_volatility).to eq([ low_vol_resource ])
       end
     end
   end

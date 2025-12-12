@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Resources is a Rails 8 application built with modern conventions and best practices.
+Resources is a Rails 8 application built with modern conventions and best practices. It's a resource management game where players navigate through 30 days, making strategic decisions about resources and trading.
 
 ## Technology Stack
 
@@ -13,23 +13,22 @@ Resources is a Rails 8 application built with modern conventions and best practi
   - Hotwire (Turbo & Stimulus)
   - ImportMap for JavaScript
   - Sass for stylesheets (no CSS framework)
-- **Authentication**: Rails 8 built-in authentication generator
 - **Background Jobs**: Solid Queue
 - **Caching**: Solid Cache
 - **Deployment**: Kamal 2.9.0
 
 ## Key Features
 
-### Authentication System
-The application uses Rails 8's built-in authentication system, which includes:
-- User model with email/password authentication
-- Session management
-- Password reset functionality
-- Secure password handling with bcrypt
+### Anonymous Game Sessions
+The application uses completely anonymous gameplay. No user accounts or authentication required:
+- Each game is identified by a unique `restore_key` stored in the session
+- When a user visits the site, they either resume their current game or start a new one
+- Games are automatically created and tracked via session cookies
+- The `GameSession` concern handles game loading and creation
 
 ### Database Structure
-- **Users Table**: Stores user accounts with email_address and password_digest
-- **Sessions Table**: Manages user sessions with IP address and user agent tracking
+- **Games Table**: Stores individual game instances with restore_key for session-based identification
+- **Resources Table**: Stores resource types available in the game
 
 ## Development Setup
 
@@ -44,44 +43,46 @@ The application uses Rails 8's built-in authentication system, which includes:
 # Install dependencies
 bundle install
 
-# Copy environment variables template
-cp .env.example .env
-# Edit .env and set your developer credentials
-
 # Setup database
 bin/rails db:create db:migrate
 
-# Seed the database (creates developer account from .env)
+# Seed the database (creates game resources)
 bin/rails db:seed
 
 # Start the development server
 bin/dev
 ```
 
-### Developer Account
-The seed file creates a developer account using credentials from your `.env` file:
-- Email: Set via `DEVELOPER_EMAIL` (default: titus@test.com)
-- Password: Set via `DEVELOPER_PASSWORD` (default: titustest)
-
-Running `bin/rails db:seed` is idempotent - it will create or update the developer account.
-
 ## Project Structure
 
 ### Models
-- `app/models/user.rb` - User authentication model
-- `app/models/session.rb` - Session management model
-- `app/models/current.rb` - Current user/session context
+- `app/models/game.rb` - Game instance model with session-based identification
+- `app/models/resource.rb` - Resource types available in the game
 
 ### Controllers
-- `app/controllers/application_controller.rb` - Base controller with authentication
-- `app/controllers/sessions_controller.rb` - Session management (login/logout)
-- `app/controllers/passwords_controller.rb` - Password reset functionality
-- `app/controllers/concerns/authentication.rb` - Authentication concern
+- `app/controllers/application_controller.rb` - Base controller with game session management
+- `app/controllers/concerns/game_session.rb` - Anonymous game session concern
 
 ### Views
-- `app/views/sessions/` - Login views
-- `app/views/passwords/` - Password reset views
-- `app/views/passwords_mailer/` - Password reset email templates
+- `app/views/pages/` - Static pages
+
+## Game Mechanics
+
+### Game Flow
+1. User lands on the site
+2. System checks for existing game via session `restore_key`
+3. If found, resume that game; otherwise create a new game
+4. Game lasts 30 days with various resources to manage
+5. Game ends with a final score based on net worth
+
+### Game Model
+The `Game` model tracks:
+- Current day (1-30)
+- Financial state: cash, bank balance, debt
+- Health and inventory capacity
+- Statistics: purchases, sales, locations visited
+- Status: active, completed, or game_over
+- Unique `restore_key` for session identification
 
 ## Rails Conventions
 
@@ -110,7 +111,7 @@ The project uses RSpec for testing with FactoryBot for test data:
 bundle exec rspec
 
 # Run specific spec file
-bundle exec rspec spec/models/user_spec.rb
+bundle exec rspec spec/models/game_spec.rb
 
 # Run specs with documentation format
 bundle exec rspec --format documentation

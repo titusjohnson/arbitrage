@@ -34,7 +34,7 @@ class CreateGames < ActiveRecord::Migration[8.0]
     end
 
     # Indexes for common queries
-    add_index :games, [:player_id, :status]
+    add_index :games, [ :player_id, :status ]
     add_index :games, :status
     add_index :games, :started_at
   end

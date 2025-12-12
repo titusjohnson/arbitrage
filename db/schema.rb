@@ -10,9 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_11_053248) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_12_025254) do
   create_table "games", force: :cascade do |t|
-    t.integer "player_id", null: false
     t.integer "current_day", default: 1, null: false
     t.integer "current_location_id"
     t.decimal "cash", precision: 10, scale: 2, default: "2000.0", null: false
@@ -31,9 +30,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_11_053248) do
     t.decimal "best_deal_profit", precision: 10, scale: 2, default: "0.0", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["player_id", "status"], name: "index_games_on_player_id_and_status"
-    t.index ["player_id"], name: "index_games_on_player_id"
+    t.string "restore_key", null: false
+    t.index ["restore_key"], name: "index_games_on_restore_key", unique: true
     t.index ["started_at"], name: "index_games_on_started_at"
+    t.index ["status"], name: "index_games_on_player_id_and_status"
     t.index ["status"], name: "index_games_on_status"
   end
 
@@ -48,24 +48,4 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_11_053248) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_resources_on_name", unique: true
   end
-
-  create_table "sessions", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "ip_address"
-    t.string "user_agent"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_sessions_on_user_id"
-  end
-
-  create_table "users", force: :cascade do |t|
-    t.string "email_address", null: false
-    t.string "password_digest", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["email_address"], name: "index_users_on_email_address", unique: true
-  end
-
-  add_foreign_key "games", "users", column: "player_id"
-  add_foreign_key "sessions", "users"
 end
