@@ -14,4 +14,7 @@ Rails.application.routes.draw do
 
   # Travel
   get "travel", to: "travel#index"
+
+  # Inventory
+  get "inventory", to: "inventory#index"
 end

@@ -1,4 +1,14 @@
 <nav class="navbar">
+  <%= link_to inventory_path, class: "navbar__item" do %>
+    <svg class="navbar__icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <!-- Briefcase icon -->
+      <rect x="4" y="8" width="16" height="12" rx="1" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M8 8 V6 C8 4.9 8.9 4 10 4 L14 4 C15.1 4 16 4.9 16 6 V8" fill="none" stroke="currentColor" stroke-width="2"/>
+      <rect x="10" y="12" width="4" height="2" rx="1" fill="currentColor"/>
+    </svg>
+    <span class="navbar__label">Inventory</span>
+  <% end %>
+
   <%= link_to travel_path, class: "navbar__item" do %>
     <svg class="navbar__icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <!-- Simple bus icon -->

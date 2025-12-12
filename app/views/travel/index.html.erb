@@ -1,18 +1,28 @@
 <div class="travel">
   <h1 class="travel__title">Travel</h1>
 
-  <div class="locations">
-    <% @locations.each do |location| %>
-      <div class="location-card">
-        <h2 class="location-card__name"><%= location.name %></h2>
-        <% if location.description.present? %>
-          <p class="location-card__description"><%= location.description %></p>
+  <%
+    # Create a hash for quick location lookup by coordinates
+    locations_by_coords = @locations.index_by { |loc| [loc.x, loc.y] }
+  %>
+
+  <table class="locations-table">
+    <% (0..4).each do |y| %>
+      <tr>
+        <% (0..5).each do |x| %>
+          <% location = locations_by_coords[[x, y]] %>
+          <td class="location-cell <%= 'location-cell--empty' unless location %>">
+            <% if location %>
+              <div class="location-card">
+                <h2 class="location-card__name"><%= location.name %></h2>
+                <% if location.description.present? %>
+                  <p class="location-card__description"><%= location.description %></p>
+                <% end %>
+              </div>
+            <% end %>
+          </td>
         <% end %>
-        <div class="location-card__coords">
-          <span class="location-card__coord">X: <%= location.x %></span>
-          <span class="location-card__coord">Y: <%= location.y %></span>
-        </div>
-      </div>
+      </tr>
     <% end %>
-  </div>
+  </table>
 </div>
