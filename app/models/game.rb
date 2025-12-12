@@ -30,6 +30,10 @@
 #  index_games_on_status       (status)
 #
 class Game < ApplicationRecord
+  # Associations
+  has_many :game_events, dependent: :destroy
+  has_many :events, through: :game_events
+
   # Validations
   validates :restore_key, presence: true, uniqueness: true
 

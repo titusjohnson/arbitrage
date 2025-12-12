@@ -10,7 +10,34 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_041456) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_12_175455) do
+  create_table "events", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "day_start"
+    t.integer "duration"
+    t.boolean "active", default: false
+    t.json "resource_effects"
+    t.json "location_effects"
+    t.string "event_type"
+    t.integer "severity"
+    t.string "rarity"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "game_events", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "event_id", null: false
+    t.integer "day_triggered"
+    t.integer "days_remaining"
+    t.boolean "seen", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_game_events_on_event_id"
+    t.index ["game_id"], name: "index_game_events_on_game_id"
+  end
+
   create_table "games", force: :cascade do |t|
     t.integer "current_day", default: 1, null: false
     t.integer "current_location_id"
@@ -81,4 +108,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_041456) do
     t.index ["name"], name: "index_resources_on_name", unique: true
     t.index ["rarity"], name: "index_resources_on_rarity"
   end
+
+  add_foreign_key "game_events", "events"
+  add_foreign_key "game_events", "games"
 end
