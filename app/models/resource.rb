@@ -9,14 +9,27 @@
 #  base_price_max   :decimal(10, 2)   not null
 #  price_volatility :decimal(5, 2)    default(50.0), not null
 #  inventory_size   :integer          default(1), not null
+#  rarity           :string           default("common"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #
 # Indexes
 #
-#  index_resources_on_name  (name) UNIQUE
+#  index_resources_on_name    (name) UNIQUE
+#  index_resources_on_rarity  (rarity)
 #
 class Resource < ApplicationRecord
+  # Tagging
+  Gutentag::ActiveRecord.call self
+
+  # Enums
+  enum :rarity, {
+    common: "common",
+    uncommon: "uncommon",
+    rare: "rare",
+    ultra_rare: "ultra_rare",
+    exceptional: "exceptional"
+  }, validate: true
   # Validations
   validates :name, presence: true, uniqueness: true
   validates :base_price_min, presence: true, numericality: { greater_than: 0 }

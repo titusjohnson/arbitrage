@@ -9,12 +9,14 @@
 #  base_price_max   :decimal(10, 2)   not null
 #  price_volatility :decimal(5, 2)    default(50.0), not null
 #  inventory_size   :integer          default(1), not null
+#  rarity           :string           default("common"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #
 # Indexes
 #
-#  index_resources_on_name  (name) UNIQUE
+#  index_resources_on_name    (name) UNIQUE
+#  index_resources_on_rarity  (rarity)
 #
 FactoryBot.define do
   factory :resource do
@@ -24,6 +26,19 @@ FactoryBot.define do
     base_price_max { 500.00 }
     price_volatility { 50.00 }
     inventory_size { 1 }
+
+    # Tags can be set using tag_names attribute
+    # Example: create(:resource, tag_names: ["tradeable", "common"])
+    transient do
+      tag_names { [] }
+    end
+
+    after(:create) do |resource, evaluator|
+      if evaluator.tag_names.any?
+        resource.tag_names = evaluator.tag_names
+        resource.save
+      end
+    end
 
     trait :electronics do
       name { "Electronics" }

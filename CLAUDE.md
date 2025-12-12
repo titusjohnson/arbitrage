@@ -28,7 +28,47 @@ The application uses completely anonymous gameplay. No user accounts or authenti
 
 ### Database Structure
 - **Games Table**: Stores individual game instances with restore_key for session-based identification
-- **Resources Table**: Stores resource types available in the game
+- **Resources Table**: Stores resource types available in the game (70 total resources)
+- **Tagging System**: Uses gutentag gem for flexible resource categorization
+
+### Resource Tagging System
+Resources are tagged with an 18-tag system to enable event-based gameplay modifiers:
+
+#### Material/Category Tags (9 tags)
+- `precious_metal` (4 resources) - Gold, silver, rhodium
+- `gemstone` (7 resources) - Diamonds, jade, rare minerals
+- `food` (14 resources) - Perishable consumables, spices, delicacies
+- `alcohol` (4 resources) - Wine, whisky, champagne
+- `collectible` (21 resources) - Cards, comics, stamps, coins
+- `timepiece` (6 resources) - Watches and clocks
+- `luxury_fashion` (7 resources) - Bags, sunglasses, sneakers, clothing
+- `antique` (28 resources) - Historical items, old books, vintage items
+- `technology` (3 resources) - Electronics, cameras, video games
+
+#### Attribute Tags (6 tags)
+- `perishable` (14 resources) - Items that spoil/degrade quickly
+- `fragile` (31 resources) - Delicate items requiring careful transport
+- `bulky` (7 resources) - Large inventory size items
+- `compact` (36 resources) - Small inventory size items
+- `investment` (29 resources) - Store-of-value items
+- `consumable` (22 resources) - Items meant to be used/consumed
+
+#### Geographic/Cultural Tags (3 tags)
+- `asian_origin` (10 resources) - Items from Asia
+- `european_origin` (26 resources) - Items from Europe
+- `artisan` (21 resources) - Handcrafted specialty items
+
+**Querying Tagged Resources:**
+```ruby
+# Single tag
+Resource.tagged_with(names: ['food'])
+
+# Multiple tags with ANY match
+Resource.tagged_with(names: ['perishable', 'food'], match: :any)
+
+# Multiple tags with ALL match
+Resource.tagged_with(names: ['investment', 'compact'], match: :all)
+```
 
 ## Development Setup
 

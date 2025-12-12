@@ -11,14 +11,59 @@ require 'rails_helper'
 #  base_price_max   :decimal(10, 2)   not null
 #  price_volatility :decimal(5, 2)    default(50.0), not null
 #  inventory_size   :integer          default(1), not null
+#  rarity           :string           default("common"), not null
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #
 # Indexes
 #
-#  index_resources_on_name  (name) UNIQUE
+#  index_resources_on_name    (name) UNIQUE
+#  index_resources_on_rarity  (rarity)
 #
 RSpec.describe Resource, type: :model do
+  describe "tagging" do
+    let(:resource) { create(:resource) }
+
+    it "allows setting tags via tag_names" do
+      resource.tag_names = [ "tradeable", "valuable" ]
+      resource.save
+      expect(resource.tag_names).to match_array([ "tradeable", "valuable" ])
+    end
+
+    it "allows creating resources with tags via factory" do
+      resource = create(:resource, tag_names: [ "perishable", "seasonal" ])
+      resource.reload
+      expect(resource.tag_names).to match_array([ "perishable", "seasonal" ])
+    end
+
+    it "can find resources by tag" do
+      resource1 = create(:resource, name: "Food", tag_names: [ "perishable" ])
+      resource2 = create(:resource, name: "Electronics", tag_names: [ "durable" ])
+
+      expect(Resource.tagged_with(names: [ "perishable" ])).to include(resource1)
+      expect(Resource.tagged_with(names: [ "perishable" ])).not_to include(resource2)
+    end
+
+    it "can find resources with any of multiple tags" do
+      resource1 = create(:resource, name: "Food", tag_names: [ "perishable", "valuable" ])
+      resource2 = create(:resource, name: "Metal", tag_names: [ "durable", "valuable" ])
+      resource3 = create(:resource, name: "Textiles", tag_names: [ "common" ])
+
+      results = Resource.tagged_with(names: [ "perishable", "durable" ], match: :any)
+      expect(results).to include(resource1, resource2)
+      expect(results).not_to include(resource3)
+    end
+
+    it "can find resources with all of multiple tags" do
+      resource1 = create(:resource, name: "Food", tag_names: [ "perishable", "valuable" ])
+      resource2 = create(:resource, name: "Metal", tag_names: [ "perishable" ])
+
+      results = Resource.tagged_with(names: [ "perishable", "valuable" ], match: :all)
+      expect(results).to include(resource1)
+      expect(results).not_to include(resource2)
+    end
+  end
+
   describe "scopes" do
     let!(:low_vol_resource) { create(:resource, name: "Stable Goods", price_volatility: 20.00) }
     let!(:mid_vol_resource) { create(:resource, name: "Normal Goods", price_volatility: 50.00) }

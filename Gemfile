@@ -22,6 +22,9 @@ gem "jbuilder"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem "bcrypt", "~> 3.1.7"
 
+# Tagging extension for ActiveRecord [https://github.com/pat/gutentag]
+gem "gutentag", "~> 3.0"
+
 # Load environment variables from .env file [https://github.com/bkeepers/dotenv]
 gem "dotenv-rails", groups: [ :development, :test ]
 

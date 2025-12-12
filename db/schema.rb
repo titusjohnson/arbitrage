@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_025254) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_12_033557) do
   create_table "games", force: :cascade do |t|
     t.integer "current_day", default: 1, null: false
     t.integer "current_location_id"
@@ -37,6 +37,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_025254) do
     t.index ["status"], name: "index_games_on_status"
   end
 
+  create_table "gutentag_taggings", force: :cascade do |t|
+    t.integer "tag_id", null: false
+    t.integer "taggable_id", null: false
+    t.string "taggable_type", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.index ["tag_id"], name: "index_gutentag_taggings_on_tag_id"
+    t.index ["taggable_type", "taggable_id", "tag_id"], name: "unique_taggings", unique: true
+    t.index ["taggable_type", "taggable_id"], name: "index_gutentag_taggings_on_taggable_type_and_taggable_id"
+  end
+
+  create_table "gutentag_tags", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.integer "taggings_count", default: 0, null: false
+    t.index ["name"], name: "index_gutentag_tags_on_name", unique: true
+    t.index ["taggings_count"], name: "index_gutentag_tags_on_taggings_count"
+  end
+
   create_table "resources", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -46,6 +66,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_025254) do
     t.integer "inventory_size", default: 1, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "rarity", default: "common", null: false
     t.index ["name"], name: "index_resources_on_name", unique: true
+    t.index ["rarity"], name: "index_resources_on_rarity"
   end
 end
