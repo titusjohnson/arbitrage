@@ -28,11 +28,14 @@
         <div class="header__brand">
           <%= link_to "Resources", root_path, class: "header__brand-link" %>
         </div>
+        <%= render "shared/navbar" %>
         <nav class="header__nav">
           <span class="header__welcome">Day <%= current_game.current_day %></span>
         </nav>
       </div>
     </header>
+
+
 
     <main class="main">
       <%= yield %>
