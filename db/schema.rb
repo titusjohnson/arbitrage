@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_033557) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_12_041456) do
   create_table "games", force: :cascade do |t|
     t.integer "current_day", default: 1, null: false
     t.integer "current_location_id"
@@ -55,6 +55,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_033557) do
     t.integer "taggings_count", default: 0, null: false
     t.index ["name"], name: "index_gutentag_tags_on_name", unique: true
     t.index ["taggings_count"], name: "index_gutentag_tags_on_taggings_count"
+  end
+
+  create_table "locations", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.integer "x", null: false
+    t.integer "y", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "population", default: 0, null: false
+    t.index ["x", "y"], name: "index_locations_on_x_and_y", unique: true
   end
 
   create_table "resources", force: :cascade do |t|
