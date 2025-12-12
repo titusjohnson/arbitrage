@@ -9,6 +9,7 @@ puts "====================================="
 # Load seed files in order
 load Rails.root.join("db", "seeds", "resources.rb")
 load Rails.root.join("db", "seeds", "locations.rb")
+load Rails.root.join("db", "seeds", "events.rb")
 
 puts "\n====================================="
 puts "✓ Database seeding complete!"
