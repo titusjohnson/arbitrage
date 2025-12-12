@@ -356,4 +356,239 @@ RSpec.describe Game, type: :model do
       expect(game.debt).to be > 0
     end
   end
+
+  describe "inventory management" do
+    let(:game) { create(:game, cash: 10000, inventory_capacity: 100) }
+    let(:resource) { create(:resource, name: "Gold", inventory_size: 5, base_price_min: 100, base_price_max: 200) }
+    let(:location) { create(:location) }
+
+    describe "#current_inventory_size" do
+      it "returns 0 for empty inventory" do
+        expect(game.current_inventory_size).to eq(0)
+      end
+
+      it "calculates total inventory size correctly" do
+        create(:inventory_item, game: game, resource: resource, quantity: 5)
+        expect(game.current_inventory_size).to eq(25) # 5 items × 5 size each
+      end
+
+      it "sums multiple items correctly" do
+        resource2 = create(:resource, name: "Silver", inventory_size: 2)
+        create(:inventory_item, game: game, resource: resource, quantity: 5) # 5 × 5 = 25
+        create(:inventory_item, game: game, resource: resource2, quantity: 10) # 10 × 2 = 20
+        expect(game.current_inventory_size).to eq(45)
+      end
+    end
+
+    describe "#available_inventory_space" do
+      it "returns full capacity for empty inventory" do
+        expect(game.available_inventory_space).to eq(100)
+      end
+
+      it "calculates remaining space correctly" do
+        create(:inventory_item, game: game, resource: resource, quantity: 5) # Uses 25 space
+        expect(game.available_inventory_space).to eq(75)
+      end
+    end
+
+    describe "#can_add_to_inventory?" do
+      it "returns true when space is available" do
+        expect(game.can_add_to_inventory?(resource, 10)).to be true # 10 × 5 = 50 space
+      end
+
+      it "returns false when space is insufficient" do
+        expect(game.can_add_to_inventory?(resource, 21)).to be false # 21 × 5 = 105 > 100
+      end
+
+      it "considers existing inventory" do
+        create(:inventory_item, game: game, resource: resource, quantity: 10) # Uses 50 space
+        expect(game.can_add_to_inventory?(resource, 11)).to be false # Would need 55 more
+        expect(game.can_add_to_inventory?(resource, 10)).to be true # Would need 50 more
+      end
+    end
+
+    describe "#inventory_value" do
+      it "returns 0 for empty inventory" do
+        expect(game.inventory_value).to eq(0)
+      end
+
+      it "calculates total value correctly" do
+        create(:inventory_item, game: game, resource: resource, quantity: 5, purchase_price: 100)
+        expect(game.inventory_value).to eq(500)
+      end
+
+      it "sums multiple items correctly" do
+        resource2 = create(:resource, name: "Silver")
+        create(:inventory_item, game: game, resource: resource, quantity: 5, purchase_price: 100) # 500
+        create(:inventory_item, game: game, resource: resource2, quantity: 3, purchase_price: 50) # 150
+        expect(game.inventory_value).to eq(650)
+      end
+    end
+
+    describe "#net_worth" do
+      it "includes inventory value in net worth calculation" do
+        game.update(cash: 1000, bank_balance: 500, debt: 200)
+        create(:inventory_item, game: game, resource: resource, quantity: 5, purchase_price: 100)
+
+        expect(game.net_worth).to eq(1800) # 1000 + 500 - 200 + 500
+      end
+    end
+
+    describe "#buy_resource" do
+      it "successfully purchases a resource" do
+        result = game.buy_resource(resource, 5, 150.00, location)
+
+        expect(result).to be true
+        expect(game.reload.cash).to eq(9250.00) # 10000 - 750
+        expect(game.inventory_items.count).to eq(1)
+        expect(game.inventory_items.first.quantity).to eq(5)
+        expect(game.inventory_items.first.purchase_price).to eq(150.00)
+        expect(game.total_purchases).to eq(5)
+      end
+
+      it "stacks items with same resource and price" do
+        game.buy_resource(resource, 3, 100.00)
+        game.buy_resource(resource, 2, 100.00)
+
+        game.reload
+        expect(game.inventory_items.count).to eq(1)
+        expect(game.inventory_items.first.quantity).to eq(5)
+      end
+
+      it "creates separate items for different prices" do
+        game.buy_resource(resource, 3, 100.00)
+        game.buy_resource(resource, 2, 110.00)
+
+        game.reload
+        expect(game.inventory_items.count).to eq(2)
+        expect(game.inventory_items.sum(:quantity)).to eq(5)
+      end
+
+      it "fails when insufficient cash" do
+        game.update(cash: 100)
+        result = game.buy_resource(resource, 5, 150.00)
+
+        expect(result).to be false
+        expect(game.reload.inventory_items.count).to eq(0)
+        expect(game.cash).to eq(100) # Cash unchanged
+      end
+
+      it "fails when insufficient inventory space" do
+        result = game.buy_resource(resource, 21, 100.00) # 21 × 5 = 105 > 100 capacity
+
+        expect(result).to be false
+        expect(game.reload.inventory_items.count).to eq(0)
+      end
+
+      it "stores purchase_day and location" do
+        game.update(current_day: 15)
+        game.buy_resource(resource, 3, 100.00, location)
+
+        item = game.inventory_items.first
+        expect(item.purchase_day).to eq(15)
+        expect(item.purchase_location_id).to eq(location.id)
+      end
+    end
+
+    describe "#can_purchase?" do
+      it "returns true when conditions are met" do
+        expect(game.can_purchase?(resource, 5, 100.00)).to be true
+      end
+
+      it "returns false when insufficient cash" do
+        game.update(cash: 100)
+        expect(game.can_purchase?(resource, 5, 150.00)).to be false
+      end
+
+      it "returns false when insufficient inventory space" do
+        expect(game.can_purchase?(resource, 21, 100.00)).to be false
+      end
+    end
+
+    describe "#sell_resource" do
+      before do
+        game.buy_resource(resource, 10, 100.00)
+        game.reload
+      end
+
+      it "successfully sells a resource using FIFO" do
+        result = game.sell_resource(resource, 5, 150.00)
+
+        expect(result).to be true
+        expect(game.reload.cash).to eq(9750.00) # 10000 - 1000 + 750
+        expect(game.inventory_items.first.quantity).to eq(5)
+        expect(game.total_sales).to eq(5)
+      end
+
+      it "sells entire stack when quantity matches" do
+        result = game.sell_resource(resource, 10, 150.00)
+
+        expect(result).to be true
+        expect(game.reload.inventory_items.count).to eq(0)
+      end
+
+      it "uses FIFO ordering when multiple stacks exist" do
+        # Clear the inventory from the before block
+        game.inventory_items.destroy_all
+
+        # Create two stacks at different times
+        travel_to 2.days.ago do
+          game.buy_resource(resource, 5, 100.00)
+        end
+        travel_to 1.day.ago do
+          game.buy_resource(resource, 3, 110.00)
+        end
+
+        game.reload
+        initial_count = game.inventory_items.count
+
+        # Sell 6 units - should sell 5 from first stack, 1 from second
+        game.sell_resource(resource, 6, 150.00)
+
+        game.reload
+        expect(game.inventory_items.count).to eq(1) # First stack destroyed
+        expect(game.inventory_items.first.quantity).to eq(2) # 3 - 1 remaining
+        expect(game.inventory_items.first.purchase_price).to eq(110.00) # Second stack
+      end
+
+      it "fails when insufficient quantity" do
+        result = game.sell_resource(resource, 15, 150.00)
+
+        expect(result).to be false
+        expect(game.reload.inventory_items.first.quantity).to eq(10) # Unchanged
+      end
+
+      it "fails when resource not in inventory" do
+        other_resource = create(:resource, name: "Silver")
+        result = game.sell_resource(other_resource, 5, 150.00)
+
+        expect(result).to be false
+      end
+    end
+
+    describe "#can_sell?" do
+      it "returns true when resource is in inventory with sufficient quantity" do
+        game.buy_resource(resource, 10, 100.00)
+        expect(game.can_sell?(resource, 5)).to be true
+      end
+
+      it "returns false when insufficient quantity" do
+        game.buy_resource(resource, 5, 100.00)
+        expect(game.can_sell?(resource, 10)).to be false
+      end
+
+      it "returns false when resource not in inventory" do
+        other_resource = create(:resource, name: "Silver")
+        expect(game.can_sell?(other_resource, 1)).to be false
+      end
+
+      it "sums quantities across multiple stacks" do
+        game.buy_resource(resource, 3, 100.00)
+        game.buy_resource(resource, 2, 110.00)
+
+        expect(game.can_sell?(resource, 5)).to be true
+        expect(game.can_sell?(resource, 6)).to be false
+      end
+    end
+  end
 end

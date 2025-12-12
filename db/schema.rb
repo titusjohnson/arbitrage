@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_175455) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_12_203709) do
   create_table "events", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -84,6 +84,20 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_175455) do
     t.index ["taggings_count"], name: "index_gutentag_tags_on_taggings_count"
   end
 
+  create_table "inventory_items", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "resource_id", null: false
+    t.integer "quantity", default: 1, null: false
+    t.decimal "purchase_price", precision: 10, scale: 2, null: false
+    t.integer "purchase_day", null: false
+    t.integer "purchase_location_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "resource_id"], name: "index_inventory_items_on_game_id_and_resource_id"
+    t.index ["game_id"], name: "index_inventory_items_on_game_id"
+    t.index ["resource_id"], name: "index_inventory_items_on_resource_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -111,4 +125,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_175455) do
 
   add_foreign_key "game_events", "events"
   add_foreign_key "game_events", "games"
+  add_foreign_key "inventory_items", "games"
+  add_foreign_key "inventory_items", "resources"
 end

@@ -22,6 +22,10 @@ class Resource < ApplicationRecord
   # Tagging
   Gutentag::ActiveRecord.call self
 
+  # Associations
+  has_many :inventory_items, dependent: :destroy
+  has_many :games, through: :inventory_items
+
   # Enums
   enum :rarity, {
     common: "common",
@@ -30,6 +34,7 @@ class Resource < ApplicationRecord
     ultra_rare: "ultra_rare",
     exceptional: "exceptional"
   }, validate: true
+
   # Validations
   validates :name, presence: true, uniqueness: true
   validates :base_price_min, presence: true, numericality: { greater_than: 0 }
