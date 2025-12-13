@@ -31,6 +31,7 @@
 #
 class Game < ApplicationRecord
   # Associations
+  belongs_to :current_location, class_name: 'Location'
   has_many :game_events, dependent: :destroy
   has_many :events, through: :game_events
   has_many :inventory_items, dependent: :destroy
@@ -72,6 +73,7 @@ class Game < ApplicationRecord
   # Callbacks
   before_validation :set_restore_key, on: :create
   before_validation :set_started_at, on: :create
+  before_validation :set_starting_location, on: :create
 
   # Scopes
   scope :active, -> { where(status: "active") }
@@ -262,5 +264,9 @@ class Game < ApplicationRecord
 
   def set_started_at
     self.started_at ||= Time.current
+  end
+
+  def set_starting_location
+    self.current_location ||= Location.order("RANDOM()").first
   end
 end

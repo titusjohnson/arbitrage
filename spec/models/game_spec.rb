@@ -86,6 +86,28 @@ RSpec.describe Game, type: :model do
         expect(game.started_at).to be_within(1.second).of(specific_time)
       end
     end
+
+    describe "set_starting_location" do
+      it "sets current_location to a random location on create if not provided" do
+        location1 = create(:location)
+        location2 = create(:location)
+
+        game = build(:game, current_location: nil)
+        game.save!
+
+        expect(game.current_location).to be_present
+        expect([location1, location2]).to include(game.current_location)
+      end
+
+      it "does not override current_location if provided" do
+        specific_location = create(:location, name: "Specific Location")
+        create(:location, name: "Other Location")
+
+        game = create(:game, current_location: specific_location)
+
+        expect(game.current_location).to eq(specific_location)
+      end
+    end
   end
 
   describe "#total_cash" do

@@ -33,7 +33,7 @@ FactoryBot.define do
   factory :game do
     # Game progress - defaults match migration
     current_day { 1 }
-    current_location_id { nil }
+    association :current_location, factory: :location
 
     # Financial state - defaults match migration
     cash { 2000.00 }
