@@ -1,0 +1,27 @@
+<div class="event-logs">
+  <h1 class="event-logs__title">Event Log</h1>
+
+  <% if @event_logs.any? %>
+    <div class="event-logs__list">
+      <% @event_logs.each do |log| %>
+        <div class="event-log-item">
+          <div class="event-log-item__timestamp">
+            <%= log.created_at.strftime("%B %d, %Y at %I:%M %p") %>
+          </div>
+          <div class="event-log-item__message">
+            <%= log.message %>
+          </div>
+          <% if log.loggable.present? %>
+            <div class="event-log-item__meta">
+              Related to: <%= log.loggable_type %> - <%= log.loggable.name %>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="event-logs__empty">
+      <p>No events logged yet. Start playing to see your game history here!</p>
+    </div>
+  <% end %>
+</div>

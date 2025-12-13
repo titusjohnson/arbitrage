@@ -97,6 +97,30 @@ RSpec.describe TravelAction, type: :service do
         }.to change { game.reload.locations_visited }.by(1)
       end
 
+      it 'creates an event log' do
+        expect {
+          action.run
+        }.to change { game.reload.event_logs.count }.by(1)
+      end
+
+      it 'logs the travel message' do
+        action.run
+        log = game.reload.event_logs.last
+        expect(log.message).to eq("Traveled to #{location2.name}")
+      end
+
+      it 'associates the log with the destination location' do
+        action.run
+        log = game.reload.event_logs.last
+        expect(log.loggable).to eq(location2)
+      end
+
+      it 'stores the log in the action instance' do
+        action.run
+        expect(action.instance_variable_get(:@log)).to be_a(EventLog)
+        expect(action.instance_variable_get(:@log).message).to match("Traveled to #{location2.name}")
+      end
+
       it 'returns true' do
         expect(action.run).to be true
       end
@@ -107,6 +131,12 @@ RSpec.describe TravelAction, type: :service do
 
       it 'returns false' do
         expect(action.run).to be false
+      end
+
+      it 'does not create an event log' do
+        expect {
+          action.run
+        }.not_to change { game.reload.event_logs.count }
       end
     end
   end

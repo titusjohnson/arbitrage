@@ -7,8 +7,7 @@ class TravelController < ApplicationController
     action = TravelAction.new(current_game, destination_id: params[:location_id])
 
     if action.run
-      destination = Location.find(params[:location_id])
-      flash[:success] = "Traveled to #{destination.name}"
+      flash[:success] = action.log.message
       redirect_to root_path
     else
       @locations = Location.all.order(:name)

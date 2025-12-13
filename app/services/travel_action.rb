@@ -42,6 +42,12 @@ class TravelAction < GameAction
 
       game.save!
 
+      # Log the travel event
+      create_log(destination, "Traveled to #{destination.name} for $#{travel_cost}.")
+
+      # Seed location resources on first visit (fog of war mechanic)
+      LocationResource.seed_for_location(game, destination)
+
       # TODO: Trigger any location-based events or random encounters
       # trigger_travel_events
     end

@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_12_203709) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_13_014843) do
+  create_table "event_logs", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.string "loggable_type"
+    t.integer "loggable_id"
+    t.text "message", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "created_at"], name: "index_event_logs_on_game_id_and_created_at"
+    t.index ["game_id"], name: "index_event_logs_on_game_id"
+    t.index ["loggable_type", "loggable_id"], name: "index_event_logs_on_loggable"
+  end
+
   create_table "events", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -98,6 +110,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_203709) do
     t.index ["resource_id"], name: "index_inventory_items_on_resource_id"
   end
 
+  create_table "location_resources", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "location_id", null: false
+    t.integer "resource_id", null: false
+    t.decimal "current_price", precision: 10, scale: 2, null: false
+    t.integer "last_refreshed_day", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "location_id", "resource_id"], name: "index_location_resources_unique", unique: true
+    t.index ["game_id", "location_id"], name: "index_location_resources_on_game_and_location"
+    t.index ["game_id"], name: "index_location_resources_on_game_id"
+    t.index ["location_id"], name: "index_location_resources_on_location_id"
+    t.index ["resource_id"], name: "index_location_resources_on_resource_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -123,8 +150,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_12_203709) do
     t.index ["rarity"], name: "index_resources_on_rarity"
   end
 
+  add_foreign_key "event_logs", "games"
   add_foreign_key "game_events", "events"
   add_foreign_key "game_events", "games"
   add_foreign_key "inventory_items", "games"
   add_foreign_key "inventory_items", "resources"
+  add_foreign_key "location_resources", "games"
+  add_foreign_key "location_resources", "locations"
+  add_foreign_key "location_resources", "resources"
 end

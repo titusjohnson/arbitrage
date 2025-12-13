@@ -44,7 +44,10 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  root "pages#home"
+  root "marketplace#index"
+
+  # Marketplace
+  get "marketplace", to: "marketplace#index"
 
   # Travel
   get "travel", to: "travel#index"
@@ -52,4 +55,7 @@ Rails.application.routes.draw do
 
   # Inventory
   get "inventory", to: "inventory#index"
+
+  # Event Logs
+  get "log", to: "event_logs#index"
 end

@@ -19,6 +19,9 @@ class Location < ApplicationRecord
   # Tagging
   Gutentag::ActiveRecord.call self
 
+  # Associations
+  has_many :location_resources, dependent: :destroy
+
   # Validations
   validates :name, presence: true
   validates :x, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }

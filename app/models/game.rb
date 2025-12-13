@@ -37,6 +37,8 @@ class Game < ApplicationRecord
   has_many :events, through: :game_events
   has_many :inventory_items, dependent: :destroy
   has_many :resources, through: :inventory_items
+  has_many :event_logs, dependent: :destroy
+  has_many :location_resources, dependent: :destroy
 
   # Validations
   validates :restore_key, presence: true, uniqueness: true
@@ -75,6 +77,8 @@ class Game < ApplicationRecord
   before_validation :set_restore_key, on: :create
   before_validation :set_started_at, on: :create
   before_validation :set_starting_location, on: :create
+  after_create :log_game_start
+  after_create :seed_starting_location_resources
   after_save :check_game_over_conditions
 
   # Scopes
@@ -270,6 +274,18 @@ class Game < ApplicationRecord
 
   def set_starting_location
     self.current_location ||= Location.order("RANDOM()").first
+  end
+
+  def log_game_start
+    event_logs.create!(
+      message: "Dazed and confused you wake up in #{current_location.name} with $#{cash.to_i} and a burning desire to arbitrage",
+      loggable: current_location
+    )
+  end
+
+  def seed_starting_location_resources
+    # Seed resources for the starting location (fog of war)
+    LocationResource.seed_for_location(self, current_location)
   end
 
   def check_game_over_conditions

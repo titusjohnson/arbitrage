@@ -109,6 +109,32 @@ RSpec.describe Game, type: :model do
         expect(game.current_location).to eq(specific_location)
       end
     end
+
+    describe "log_game_start" do
+      it "creates an event log when game is created" do
+        location = create(:location)
+
+        expect {
+          create(:game, current_location: location)
+        }.to change { EventLog.count }.by(1)
+      end
+
+      it "logs a welcome message with location and starting cash" do
+        location = create(:location, name: "New York")
+        game = create(:game, current_location: location, cash: 2000)
+
+        log = game.event_logs.first
+        expect(log.message).to eq("Dazed and confused you wake up in New York with $2000 and a burning desire to arbitrage")
+      end
+
+      it "associates the log with the starting location" do
+        location = create(:location)
+        game = create(:game, current_location: location)
+
+        log = game.event_logs.first
+        expect(log.loggable).to eq(location)
+      end
+    end
   end
 
   describe "#total_cash" do

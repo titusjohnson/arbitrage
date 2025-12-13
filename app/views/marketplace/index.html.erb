@@ -1,0 +1,49 @@
+<div class="Page">
+  <div class="Page__Header">
+    <h1 class="Page__Title">Marketplace</h1>
+    <p class="Page__Subtitle"><%= @location.name %> - Day <%= current_game.current_day %></p>
+  </div>
+
+  <div class="Page__Content">
+    <% if @location_resources.any? %>
+      <table class="Table">
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th class="Table__Cell--right">Price</th>
+            <th class="Table__Cell--right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @location_resources.each do |location_resource| %>
+            <tr>
+              <td>
+                <strong><%= location_resource.resource.name %></strong>
+                <% if location_resource.resource.description.present? %>
+                  <br>
+                  <small class="Text--muted"><%= location_resource.resource.description %></small>
+                <% end %>
+              </td>
+              <td class="Table__Cell--right">
+                <strong>$<%= number_with_delimiter(location_resource.current_price, delimiter: ',') %></strong>
+                <br>
+                <small class="Text--muted">
+                  Size: <%= location_resource.resource.inventory_size %>
+                  | <%= location_resource.resource.rarity.titleize %>
+                </small>
+              </td>
+              <td class="Table__Cell--right">
+                <button class="Button Button--small Button--primary">Buy</button>
+                <button class="Button Button--small">Sell</button>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="Alert Alert--info">
+        <p>No resources available at this location. Travel to discover new markets!</p>
+      </div>
+    <% end %>
+  </div>
+</div>

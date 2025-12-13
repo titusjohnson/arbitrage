@@ -16,6 +16,7 @@
               <%
                 distance = current_game.current_location.distance_to(location)
                 cost = distance * 100
+                is_current_location = location.id == current_game.current_location_id
               %>
               <div class="location-card"
                    data-controller="travel-confirmation"
@@ -26,15 +27,22 @@
                 <% if location.description.present? %>
                   <p class="location-card__description"><%= location.description %></p>
                 <% end %>
-                <%= button_to "$#{cost}", travel_path,
-                    params: { location_id: location.id },
-                    method: :post,
-                    title: "Travel. Advances Day",
-                    class: "travel-button travel-button--distance-#{distance}",
-                    data: {
-                      distance: distance,
-                      action: "click->travel-confirmation#confirm"
-                    } %>
+                <% if is_current_location %>
+                  <%= button_tag "$#{cost}",
+                      title: "Travel. Advances Day",
+                      disabled: :disabled,
+                      class: "travel-button travel-button--distance-#{distance}" %>
+                <% else %>
+                  <%= button_to "$#{cost}", travel_path,
+                      params: { location_id: location.id },
+                      method: :post,
+                      title: "Travel. Advances Day",
+                      class: "travel-button travel-button--distance-#{distance}",
+                      data: {
+                        distance: distance,
+                        action: "click->travel-confirmation#confirm"
+                      } %>
+                <% end %>
               </div>
             <% end %>
           </td>

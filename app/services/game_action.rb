@@ -13,7 +13,7 @@ class GameAction
   include ActiveModel::Attributes
   include ActiveModel::Validations
 
-  attr_reader :game
+  attr_reader :game, :log
 
   # Validations that apply to all actions
   validates :game, presence: true
@@ -39,6 +39,17 @@ class GameAction
   end
 
   protected
+
+  # Helper to create an event log for this action
+  # @param loggable [ActiveRecord::Base, nil] Optional related object (Resource, Location, etc.)
+  # @param message [String] Log message to record
+  # @return [EventLog] The created log record
+  def create_log(loggable, message)
+    @log = game.event_logs.create!(
+      message: message,
+      loggable: loggable
+    )
+  end
 
   # Helper to add game-level errors
   def add_game_error(message)
