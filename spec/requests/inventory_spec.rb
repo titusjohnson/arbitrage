@@ -1,6 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe "Inventories", type: :request do
+  # Ensure at least one location exists for game creation
+  before(:each) do
+    create(:location) unless Location.exists?
+  end
+
   describe "GET /inventoryinventory" do
     it "returns http success" do
       get "/inventory"

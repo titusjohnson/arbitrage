@@ -1,6 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe "GameSessions", type: :request do
+  # Ensure at least one location exists for game creation
+  before(:each) do
+    create(:location) unless Location.exists?
+  end
+
   describe "Anonymous game creation and restoration" do
     describe "automatic game creation" do
       it "creates a new game on first visit" do

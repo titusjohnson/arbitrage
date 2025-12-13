@@ -1,14 +1,10 @@
 require 'rails_helper'
 
 RSpec.describe TravelAction, type: :service do
-  let(:game) { create(:game, health: 10, current_day: 5) }
   let(:location1) { create(:location, x: 0, y: 0) }
   let(:location2) { create(:location, x: 1, y: 0) } # Adjacent to location1
   let(:location3) { create(:location, x: 2, y: 2) } # Far from location1
-
-  before do
-    game.update!(current_location_id: location1.id)
-  end
+  let(:game) { create(:game, health: 10, current_day: 5, current_location: location1) }
 
   describe '#valid?' do
     context 'with valid params' do
