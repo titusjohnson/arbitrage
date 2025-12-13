@@ -57,7 +57,8 @@ class LocationResource < ApplicationRecord
         price = resource.generate_market_price
         quantity = calculate_initial_quantity(game, location, resource, price)
 
-        create!(
+        # Create the location resource first
+        location_resource = create!(
           game: game,
           location: location,
           resource: resource,
@@ -68,6 +69,19 @@ class LocationResource < ApplicationRecord
           price_direction: rand(-1.0..1.0).round(2), # Random initial direction
           price_momentum: 0.5 # Start with medium momentum
         )
+
+        # Apply event effects to initial prices and quantities
+        event_effects = EventEffectsService.new(game, location_resource).call
+        if event_effects[:price_multiplier] != 1.0 || event_effects[:availability_multiplier] != 1.0
+          modified_price = (price * event_effects[:price_multiplier]).round(2)
+          modified_quantity = (quantity * event_effects[:availability_multiplier]).round.to_i
+          modified_quantity = [modified_quantity, 1].max
+
+          location_resource.update!(
+            current_price: modified_price,
+            available_quantity: modified_quantity
+          )
+        end
       end
     end
   end
@@ -247,6 +261,12 @@ class LocationResource < ApplicationRecord
 
     # Update quantity based on price movement
     new_quantity = calculate_new_quantity(new_price)
+
+    # Apply event effects
+    event_effects = EventEffectsService.new(game, self).call
+    new_price = (new_price * event_effects[:price_multiplier]).round(2)
+    new_quantity = (new_quantity * event_effects[:availability_multiplier]).round.to_i
+    new_quantity = [new_quantity, 1].max # Ensure at least 1 item available
 
     # Apply updates
     update!(

@@ -169,6 +169,20 @@ bundle exec rspec --format documentation
 - `spec/system/` - System specs (full-stack feature tests)
 - `spec/factories/` - FactoryBot factory definitions
 
+### Testing Conventions
+
+**What We Do:**
+- ✅ Test public interfaces and observable behavior
+- ✅ Reload database objects to verify changes (e.g., `object.reload`)
+- ✅ Use spies as a last resort when reload/observation isn't practical
+- ✅ Test effects rather than implementation details
+- ✅ Use FactoryBot for test data
+
+**What We Don't Do:**
+- ❌ No shoulda-matchers gem
+- ❌ Don't test private methods directly
+- ❌ Avoid testing implementation details
+
 ## Code Quality
 
 - **Brakeman**: Security scanning (`bin/brakeman`)
