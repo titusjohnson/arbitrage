@@ -3,13 +3,13 @@
 # Table name: game_events
 #
 #  id             :integer          not null, primary key
-#  game_id        :integer          not null
-#  event_id       :integer          not null
 #  day_triggered  :integer
 #  days_remaining :integer
 #  seen           :boolean          default(FALSE)
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
+#  event_id       :integer          not null
+#  game_id        :integer          not null
 #
 # Indexes
 #
@@ -18,8 +18,8 @@
 #
 # Foreign Keys
 #
-#  event_id  (events.id)
-#  game_id   (games.id)
+#  event_id  (event_id => events.id)
+#  game_id   (game_id => games.id)
 #
 class GameEvent < ApplicationRecord
   # Associations

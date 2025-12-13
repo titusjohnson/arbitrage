@@ -66,6 +66,9 @@ group :development, :test do
 
   # Faker for generating fake data [https://github.com/faker-ruby/faker]
   gem "faker", "~> 3.5"
+
+  # Annotate models and routes [https://github.com/drwl/annotaterb]
+  gem "annotaterb", "~> 4.0"
 end
 
 group :development do

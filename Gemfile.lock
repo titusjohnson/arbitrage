@@ -74,6 +74,9 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.8)
       public_suffix (>= 2.0.2, < 8.0)
+    annotaterb (4.20.0)
+      activerecord (>= 6.0.0)
+      activesupport (>= 6.0.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
@@ -447,6 +450,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  annotaterb (~> 4.0)
   bcrypt (~> 3.1.7)
   bootsnap
   brakeman

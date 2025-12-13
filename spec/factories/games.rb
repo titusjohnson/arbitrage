@@ -2,32 +2,33 @@
 #
 # Table name: games
 #
-#  id                 :integer          not null, primary key
-#  current_day        :integer          default(1), not null
-#  current_location_id:integer
-#  cash               :decimal(10, 2)   default(2000.0), not null
-#  bank_balance       :decimal(10, 2)   default(0.0), not null
-#  debt               :decimal(10, 2)   default(0.0), not null
-#  status             :string           default("active"), not null
-#  final_score        :integer
-#  health             :integer          default(10), not null
-#  max_health         :integer          default(10), not null
-#  inventory_capacity :integer          default(100), not null
-#  started_at         :datetime         not null
-#  completed_at       :datetime
-#  total_purchases    :integer          default(0), not null
-#  total_sales        :integer          default(0), not null
-#  locations_visited  :integer          default(1), not null
-#  best_deal_profit   :decimal(10, 2)   default(0.0), not null
-#  restore_key        :string           not null
-#  created_at         :datetime         not null
-#  updated_at         :datetime         not null
+#  id                  :integer          not null, primary key
+#  bank_balance        :decimal(10, 2)   default(0.0), not null
+#  best_deal_profit    :decimal(10, 2)   default(0.0), not null
+#  cash                :decimal(10, 2)   default(2000.0), not null
+#  completed_at        :datetime
+#  current_day         :integer          default(1), not null
+#  debt                :decimal(10, 2)   default(0.0), not null
+#  final_score         :integer
+#  health              :integer          default(10), not null
+#  inventory_capacity  :integer          default(100), not null
+#  locations_visited   :integer          default(1), not null
+#  max_health          :integer          default(10), not null
+#  restore_key         :string           not null
+#  started_at          :datetime         not null
+#  status              :string           default("active"), not null
+#  total_purchases     :integer          default(0), not null
+#  total_sales         :integer          default(0), not null
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  current_location_id :integer
 #
 # Indexes
 #
-#  index_games_on_restore_key  (restore_key) UNIQUE
-#  index_games_on_started_at   (started_at)
-#  index_games_on_status       (status)
+#  index_games_on_player_id_and_status  (status)
+#  index_games_on_restore_key           (restore_key) UNIQUE
+#  index_games_on_started_at            (started_at)
+#  index_games_on_status                (status)
 #
 FactoryBot.define do
   factory :game do
