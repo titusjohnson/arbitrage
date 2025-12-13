@@ -47,8 +47,23 @@ class SellAction < GameAction
         game.update!(best_deal_profit: profit)
       end
 
-      # Log the sale
-      create_log(resource, "Sold #{quantity} #{resource.name.pluralize(quantity)} for $#{total_revenue} (profit: $#{profit}).")
+      # Check for event effects
+      event_effects = EventEffectsService.new(game, location_resource).call
+      has_event_effects = event_effects[:price_multiplier] != 1.0
+
+      # Create log message
+      log_message = "Sold #{quantity} #{resource.name.pluralize(quantity)} for $#{total_revenue} (profit: $#{profit})"
+      if has_event_effects
+        multiplier_pct = ((event_effects[:price_multiplier] - 1.0) * 100).round(0)
+        if event_effects[:price_multiplier] > 1.0
+          log_message += " ⚡ +#{multiplier_pct}% event price"
+        else
+          log_message += " ⚡ #{multiplier_pct}% event price"
+        end
+      end
+      log_message += "."
+
+      create_log(resource, log_message)
     end
 
     true

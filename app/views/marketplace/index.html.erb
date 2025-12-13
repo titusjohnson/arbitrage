@@ -88,6 +88,16 @@
                 profit_loss_pct = ((profit_loss / total_paid) * 100).round(1)
                 is_profit = profit_loss >= 0
               end
+
+              # Calculate event effects
+              event_effects = EventEffectsService.new(@game, location_resource).call
+              has_price_effect = event_effects[:price_multiplier] != 1.0
+              has_availability_effect = event_effects[:availability_multiplier] != 1.0
+
+              if has_price_effect
+                # Calculate what the price would be without events
+                base_price_without_events = (location_resource.current_price / event_effects[:price_multiplier]).round(2)
+              end
             %>
             <tr>
               <td>
@@ -106,12 +116,22 @@
               </td>
               <td class="Table__Cell--right">
                 <strong>$<%= number_with_delimiter(location_resource.current_price, delimiter: ',') %></strong>
+                <% if has_price_effect %>
+                  <br>
+                  <small class="<%= event_effects[:price_multiplier] > 1.0 ? 'Text--danger' : 'Text--success' %>">
+                    <% if event_effects[:price_multiplier] > 1.0 %>
+                      ↑ +<%= ((event_effects[:price_multiplier] - 1.0) * 100).round(0) %>% event price
+                    <% else %>
+                      ↓ -<%= ((1.0 - event_effects[:price_multiplier]) * 100).round(0) %>% event price
+                    <% end %>
+                  </small>
+                <% end %>
                 <br>
                 <small class="Text--muted">
                   Size: <%= resource.inventory_size %>
                   | <%= resource.rarity.titleize %>
                   <br>
-                  Stock: <%= location_resource.available_quantity %>
+                  Stock: <%= location_resource.available_quantity %><% if has_availability_effect %> (<%= event_effects[:availability_multiplier] > 1.0 ? '+' : '' %><%= ((event_effects[:availability_multiplier] - 1.0) * 100).round(0) %>%)<% end %>
                 </small>
               </td>
               <td class="Table__Cell--right">

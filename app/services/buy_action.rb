@@ -46,7 +46,23 @@ class BuyAction < GameAction
       # Decrement the available quantity at the location
       location_resource.decrement!(:available_quantity, quantity)
 
-      create_log(resource, "Purchased #{quantity} of #{resource.name}")
+      # Check for event effects
+      event_effects = EventEffectsService.new(game, location_resource).call
+      has_event_effects = event_effects[:price_multiplier] != 1.0
+
+      # Create log message
+      log_message = "Purchased #{quantity} #{resource.name.pluralize(quantity)} for $#{total_cost}"
+      if has_event_effects
+        multiplier_pct = ((event_effects[:price_multiplier] - 1.0) * 100).round(0)
+        if event_effects[:price_multiplier] > 1.0
+          log_message += " (⚡ +#{multiplier_pct}% event price)"
+        else
+          log_message += " (⚡ #{multiplier_pct}% event price)"
+        end
+      end
+      log_message += "."
+
+      create_log(resource, log_message)
     end
 
     true

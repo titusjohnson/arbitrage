@@ -21,8 +21,31 @@
               %>
               <%
                 has_buddy = @recently_visited_location_ids.include?(location.id)
+
+                # Check if any active events affect this location
+                location_has_event_effects = false
+                current_game.game_events.active.includes(:event).each do |game_event|
+                  event = game_event.event
+                  if event.location_effects.present?
+                    # Check if any location effect modifiers match this location's tags
+                    location_tag_names = location.tags.map(&:name)
+                    ['price_modifiers', 'quantity_modifiers'].each do |modifier_type|
+                      next unless event.location_effects[modifier_type]
+                      event.location_effects[modifier_type].each do |modifier|
+                        if modifier['scoped_tags'] && modifier['scoped_tags']['location']
+                          if (modifier['scoped_tags']['location'] & location_tag_names).any?
+                            location_has_event_effects = true
+                            break
+                          end
+                        end
+                      end
+                      break if location_has_event_effects
+                    end
+                  end
+                  break if location_has_event_effects
+                end
               %>
-              <div class="location-card <%= 'location-card--has-buddy' if has_buddy %>"
+              <div class="location-card <%= 'location-card--has-buddy' if has_buddy %> <%= 'location-card--has-events' if location_has_event_effects %>"
                    data-controller="travel-confirmation <%= 'buddy-info' if has_buddy %>"
                    data-travel-confirmation-from-value="<%= current_game.current_location.name %>"
                    data-travel-confirmation-to-value="<%= location.name %>"
@@ -31,6 +54,9 @@
                    <%= "data-buddy-info-location-id-value=\"#{location.id}\"" if has_buddy %>>
                 <h2 class="location-card__name">
                   <%= location.name %>
+                  <% if location_has_event_effects %>
+                    <span style="color: #ff6b35; margin-left: 0.25rem;" title="Active events affecting this location">⚡</span>
+                  <% end %>
                 </h2>
                 <% if location.description.present? %>
                   <p class="location-card__description"><%= location.description %></p>
@@ -108,11 +134,18 @@
               </thead>
               <tbody>
                 <% location_resources.each do |lr| %>
+                  <%
+                    # Calculate event effects for this resource
+                    lr_event_effects = EventEffectsService.new(current_game, lr).call
+                    lr_has_price_effect = lr_event_effects[:price_multiplier] != 1.0
+                  %>
                   <tr>
                     <td class="prices-table__name"><%= lr.resource.name %></td>
                     <td class="prices-table__price">
                       $<%= number_with_precision(lr.current_price, precision: 2) %>
-                      <% if lr.price_direction > 0.1 %>
+                      <% if lr_has_price_effect %>
+                        ⚡
+                      <% elsif lr.price_direction > 0.1 %>
                         📈
                       <% elsif lr.price_direction < -0.1 %>
                         📉
