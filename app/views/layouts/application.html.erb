@@ -34,6 +34,7 @@
         <%= render "shared/navbar" %>
         <nav class="header__nav">
           <span class="header__cash">Cash: $<%= number_with_delimiter(current_game.cash.to_i) %></span>
+          <span class="header__cash">Inventory: $<%= number_with_delimiter(current_game.inventory_value.to_i) %></span>
           <span class="header__welcome">Day <%= current_game.current_day %></span>
         </nav>
       </div>

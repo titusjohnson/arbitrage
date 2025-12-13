@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_13_035648) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_13_043111) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -70,6 +70,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_035648) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "restore_key", null: false
+    t.integer "active_game_event_id"
+    t.index ["active_game_event_id"], name: "index_games_on_active_game_event_id"
     t.index ["restore_key"], name: "index_games_on_restore_key", unique: true
     t.index ["started_at"], name: "index_games_on_started_at"
     t.index ["status"], name: "index_games_on_player_id_and_status"
@@ -169,6 +171,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_035648) do
   add_foreign_key "event_logs", "games"
   add_foreign_key "game_events", "events"
   add_foreign_key "game_events", "games"
+  add_foreign_key "games", "game_events", column: "active_game_event_id"
   add_foreign_key "inventory_items", "games"
   add_foreign_key "inventory_items", "resources"
   add_foreign_key "location_resources", "games"

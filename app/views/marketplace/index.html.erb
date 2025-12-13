@@ -6,6 +6,34 @@
     <% end %>
   </div>
 
+  <% @active_events = @game.game_events.active.includes(:event) %>
+  <% @active_events.each do |game_event| %>
+    <% event = game_event.event %>
+    <% is_unseen = !game_event.seen? %>
+    <% game_event.update(seen: true) if is_unseen %>
+    <%
+      # Create sanitized filename from event name
+      svg_filename = event.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
+      svg_partial_path = "events/_graphics/#{svg_filename}"
+    %>
+    <div class="event-banner event-banner--<%= event.rarity %> <%= 'event-banner--unseen' if is_unseen %>">
+      <div class="event-banner__container">
+        <div class="event-banner__graphic">
+          <%= render partial: svg_partial_path rescue '' %>
+        </div>
+        <div class="event-banner__content">
+          <h3 class="event-banner__title"><%= event.name %></h3>
+          <p class="event-banner__description"><%= event.description %></p>
+          <div class="event-banner__meta">
+            <%= event.event_type&.titleize || 'Event' %> •
+            Severity: <%= event.severity %>/5 •
+            <%= game_event.days_remaining %> <%= 'day'.pluralize(game_event.days_remaining) %> remaining
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <div class="Page__Content">
     <% if @location_resources.any? %>
       <table class="Table">

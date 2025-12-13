@@ -18,8 +18,8 @@
 #
 # Foreign Keys
 #
-#  game_id      (games.id)
-#  location_id  (locations.id)
+#  game_id      (game_id => games.id)
+#  location_id  (location_id => locations.id)
 #
 class LocationVisit < ApplicationRecord
   belongs_to :game
