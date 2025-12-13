@@ -62,11 +62,14 @@
                   <p class="location-card__description"><%= location.description %></p>
                 <% end %>
                 <% if location.tags.any? %>
-                  <div class="tags">
-                    <% location.tags.each do |tag| %>
-                      <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
-                    <% end %>
-                  </div>
+                  <details class="tags-toggle">
+                    <summary class="tags-toggle__summary">…</summary>
+                    <div class="tags">
+                      <% location.tags.each do |tag| %>
+                        <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
+                      <% end %>
+                    </div>
+                  </details>
                 <% end %>
                 <div class="location-card__actions">
                   <% if is_current_location %>

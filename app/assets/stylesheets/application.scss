@@ -1372,6 +1372,40 @@ input[type="submit"] {
     }
 }
 
+.tags-toggle {
+    margin-top: 6px;
+
+    &__summary {
+        font-size: 11px;
+        color: #666;
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+            color: $color-link-hover;
+        }
+    }
+
+    .tags {
+        margin-top: 4px;
+    }
+
+    &--inline {
+        margin-top: 0;
+
+        .tags {
+            position: absolute;
+            z-index: 10;
+            background: #fff;
+            border: 1px solid $color-border;
+            padding: 4px;
+            border-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 2px;
+        }
+    }
+}
+
 .tag {
     display: inline-block;
     padding: 2px 8px;
