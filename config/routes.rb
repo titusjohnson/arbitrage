@@ -48,6 +48,7 @@ Rails.application.routes.draw do
 
   # Marketplace
   get "marketplace", to: "marketplace#index"
+  post "marketplace/buy", to: "marketplace#buy", as: :marketplace_buy
 
   # Travel
   get "travel", to: "travel#index"

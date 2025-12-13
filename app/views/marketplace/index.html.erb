@@ -1,7 +1,9 @@
 <div class="Page">
   <div class="Page__Header">
-    <h1 class="Page__Title">Marketplace</h1>
-    <p class="Page__Subtitle"><%= @location.name %> - Day <%= current_game.current_day %></p>
+    <h1 class="Page__Title"><%= @location.name %> Marketplace</h1>
+    <% if @location.description.present? %>
+      <p class="Page__Subtitle"><%= @location.description %></p>
+    <% end %>
   </div>
 
   <div class="Page__Content">
@@ -10,31 +12,77 @@
         <thead>
           <tr>
             <th>Resource</th>
-            <th class="Table__Cell--right">Price</th>
+            <th class="Table__Cell--right">Market Price</th>
+            <th class="Table__Cell--right">Your Position</th>
             <th class="Table__Cell--right">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @location_resources.each do |location_resource| %>
+            <%
+              resource = location_resource.resource
+              inventory_items = @inventory_by_resource[resource.id] || []
+              has_inventory = inventory_items.any?
+
+              if has_inventory
+                # Calculate average purchase price and total quantity
+                total_quantity = inventory_items.sum(&:quantity)
+                total_cost = inventory_items.sum { |item| item.purchase_price * item.quantity }
+                avg_purchase_price = total_cost / total_quantity
+
+                # Calculate profit/loss
+                current_value = location_resource.current_price * total_quantity
+                total_paid = total_cost
+                profit_loss = current_value - total_paid
+                profit_loss_pct = ((profit_loss / total_paid) * 100).round(1)
+                is_profit = profit_loss >= 0
+              end
+            %>
             <tr>
               <td>
-                <strong><%= location_resource.resource.name %></strong>
-                <% if location_resource.resource.description.present? %>
+                <strong><%= resource.name %></strong>
+                <% if resource.description.present? %>
                   <br>
-                  <small class="Text--muted"><%= location_resource.resource.description %></small>
+                  <small class="Text--muted"><%= resource.description %></small>
                 <% end %>
               </td>
               <td class="Table__Cell--right">
                 <strong>$<%= number_with_delimiter(location_resource.current_price, delimiter: ',') %></strong>
                 <br>
                 <small class="Text--muted">
-                  Size: <%= location_resource.resource.inventory_size %>
-                  | <%= location_resource.resource.rarity.titleize %>
+                  Size: <%= resource.inventory_size %>
+                  | <%= resource.rarity.titleize %>
+                  <br>
+                  Stock: <%= location_resource.available_quantity %>
                 </small>
               </td>
               <td class="Table__Cell--right">
-                <button class="Button Button--small Button--primary">Buy</button>
-                <button class="Button Button--small">Sell</button>
+                <% if has_inventory %>
+                  <strong><%= total_quantity %> units</strong>
+                  <br>
+                  <small class="Text--muted">
+                    Avg: $<%= number_with_delimiter(avg_purchase_price.round(2), delimiter: ',') %>
+                  </small>
+                  <br>
+                  <small class="<%= is_profit ? 'Text--success' : 'Text--danger' %>">
+                    <%= is_profit ? '+' : '' %>$<%= number_with_delimiter(profit_loss.round(2), delimiter: ',') %>
+                    (<%= is_profit ? '+' : '' %><%= profit_loss_pct %>%)
+                  </small>
+                <% else %>
+                  <small class="Text--muted">—</small>
+                <% end %>
+              </td>
+              <td class="Table__Cell--right">
+                <%= form_with url: marketplace_buy_path, method: :post, style: "display: inline;" do |form| %>
+                  <%= form.hidden_field :resource_id, value: resource.id %>
+                  <%= form.hidden_field :location_resource_id, value: location_resource.id %>
+                  <%= form.hidden_field :quantity, value: 1 %>
+                  <%= form.hidden_field :price_per_unit, value: location_resource.current_price %>
+                  <%= form.submit "Buy", class: "button button--primary" %>
+                <% end %>
+                <% if has_inventory %>
+                  <button class="button">Sell</button>
+                <% end %>
               </td>
             </tr>
           <% end %>
