@@ -39,6 +39,7 @@ class Game < ApplicationRecord
   has_many :resources, through: :inventory_items
   has_many :event_logs, dependent: :destroy
   has_many :location_resources, dependent: :destroy
+  has_many :location_visits, dependent: :destroy
 
   # Validations
   validates :restore_key, presence: true, uniqueness: true
@@ -260,6 +261,26 @@ class Game < ApplicationRecord
   def can_sell?(resource, quantity)
     total_available = inventory_items.where(resource: resource).sum(:quantity)
     total_available >= quantity
+  end
+
+  # Location Visit Tracking
+
+  def record_location_visit(location)
+    location_visits.create!(
+      location: location,
+      visited_on: current_day
+    )
+  end
+
+  def recently_visited_locations(days_back = 10)
+    cutoff_day = [current_day - days_back, 1].max
+
+    Location.joins(:location_visits)
+            .where(location_visits: { game_id: id })
+            .where('location_visits.visited_on >= ? AND location_visits.visited_on < ?', cutoff_day, current_day)
+            .where.not(id: current_location_id)
+            .distinct
+            .order('location_visits.visited_on DESC')
   end
 
   private

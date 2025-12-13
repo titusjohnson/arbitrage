@@ -15,10 +15,8 @@ class MarketplaceController < ApplicationController
   def buy
     action = BuyAction.new(
       current_game,
-      resource_id: params[:resource_id],
-      quantity: params[:quantity],
-      price_per_unit: params[:price_per_unit],
-      location_resource_id: params[:location_resource_id]
+      location_resource_id: params[:location_resource_id],
+      quantity: params[:quantity]
     )
 
     if action.call
@@ -31,9 +29,8 @@ class MarketplaceController < ApplicationController
   def sell
     action = SellAction.new(
       current_game,
-      resource_id: params[:resource_id],
-      quantity: params[:quantity],
-      price_per_unit: params[:price_per_unit]
+      location_resource_id: params[:location_resource_id],
+      quantity: params[:quantity]
     )
 
     if action.call

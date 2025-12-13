@@ -38,9 +38,9 @@ RSpec.describe "Inventories", type: :request do
 
       get "/inventory"
 
-      expect(response.body).to include("Capacity Used")
-      expect(response.body).to include("Total Value")
-      expect(response.body).to include("Unique Items")
+      expect(response.body).to include("Capacity:")
+      expect(response.body).to include("Total Value:")
+      expect(response.body).to include("Items:")
     end
   end
 end

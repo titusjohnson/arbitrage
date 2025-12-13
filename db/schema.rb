@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_13_034342) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_13_035648) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -129,6 +129,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_034342) do
     t.index ["resource_id"], name: "index_location_resources_on_resource_id"
   end
 
+  create_table "location_visits", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "location_id", null: false
+    t.integer "visited_on", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "location_id", "visited_on"], name: "index_location_visits_unique"
+    t.index ["game_id", "visited_on"], name: "index_location_visits_on_game_and_day"
+    t.index ["game_id"], name: "index_location_visits_on_game_id"
+    t.index ["location_id"], name: "index_location_visits_on_location_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -162,4 +174,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_034342) do
   add_foreign_key "location_resources", "games"
   add_foreign_key "location_resources", "locations"
   add_foreign_key "location_resources", "resources"
+  add_foreign_key "location_visits", "games"
+  add_foreign_key "location_visits", "locations"
 end

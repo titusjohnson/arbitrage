@@ -21,6 +21,7 @@ class Location < ApplicationRecord
 
   # Associations
   has_many :location_resources, dependent: :destroy
+  has_many :location_visits, dependent: :destroy
 
   # Validations
   validates :name, presence: true

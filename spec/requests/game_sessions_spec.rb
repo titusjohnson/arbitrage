@@ -28,7 +28,7 @@ RSpec.describe "GameSessions", type: :request do
 
         game = Game.last
         expect(game.current_day).to eq(1)
-        expect(game.cash).to eq(2000.00)
+        expect(game.cash).to eq(5000.00)
         expect(game.bank_balance).to eq(0.00)
         expect(game.debt).to eq(0.00)
         expect(game.status).to eq("active")

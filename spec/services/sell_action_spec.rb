@@ -2,7 +2,13 @@ require 'rails_helper'
 
 RSpec.describe SellAction, type: :service do
   let(:game) { create(:game, cash: 500.0) }
+  let(:location) { create(:location) }
   let(:resource) { create(:resource) }
+  let(:location_resource) { create(:location_resource, location: location, resource: resource, current_price: 15.0) }
+
+  before do
+    game.update!(current_location_id: location.id)
+  end
 
   describe '#valid?' do
     before do
@@ -11,33 +17,33 @@ RSpec.describe SellAction, type: :service do
     end
 
     context 'with valid params' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 15.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
       it 'is valid' do
         expect(action).to be_valid
       end
     end
 
-    context 'without resource_id' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 15.0) }
+    context 'without location_resource_id' do
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:resource_id]).to include("can't be blank")
+        expect(action.errors[:location_resource_id]).to include("can't be blank")
       end
     end
 
-    context 'with non-existent resource' do
-      let(:action) { described_class.new(game, resource_id: 99999, quantity: 10, price_per_unit: 15.0) }
+    context 'with non-existent location_resource' do
+      let(:action) { described_class.new(game, location_resource_id: 99999, quantity: 10) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:resource_id]).to include("does not exist")
+        expect(action.errors[:location_resource_id]).to include("does not exist")
       end
     end
 
     context 'with zero quantity' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 0, price_per_unit: 15.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 0) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -46,7 +52,7 @@ RSpec.describe SellAction, type: :service do
     end
 
     context 'with insufficient inventory' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 50, price_per_unit: 15.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 50) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -56,7 +62,8 @@ RSpec.describe SellAction, type: :service do
 
     context 'when player does not own the resource' do
       let(:other_resource) { create(:resource, name: "Other Resource") }
-      let(:action) { described_class.new(game, resource_id: other_resource.id, quantity: 1, price_per_unit: 15.0) }
+      let(:other_location_resource) { create(:location_resource, location: location, resource: other_resource, current_price: 15.0) }
+      let(:action) { described_class.new(game, location_resource_id: other_location_resource.id, quantity: 1) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -66,9 +73,12 @@ RSpec.describe SellAction, type: :service do
   end
 
   describe '#run' do
-    let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 20.0) }
+    let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
     before do
+      # Update location_resource to have a selling price of $20
+      location_resource.update!(current_price: 20.0)
+
       # Buy 20 units at $10 each
       game.update!(cash: 500.0)
       game.buy_resource(resource, 20, 10.0)
@@ -127,9 +137,12 @@ RSpec.describe SellAction, type: :service do
     end
 
     context 'with multiple inventory stacks at different prices (FIFO)' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 15, price_per_unit: 25.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 15) }
 
       before do
+        # Update location_resource to have a selling price of $25
+        location_resource.update!(current_price: 25.0)
+
         # Already have 20 units at $10 from setup
         # Buy 10 more at $15
         game.buy_resource(resource, 10, 15.0)
@@ -157,7 +170,7 @@ RSpec.describe SellAction, type: :service do
     end
 
     context 'with invalid action' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 20.0) }
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
       it 'returns false' do
         expect(action.run).to be false
@@ -179,12 +192,13 @@ RSpec.describe SellAction, type: :service do
 
   describe '#call' do
     before do
+      location_resource.update!(current_price: 20.0)
       game.buy_resource(resource, 20, 10.0)
       game.reload
     end
 
     context 'with valid params' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 20.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
       it 'validates and runs the action' do
         initial_cash = game.cash
@@ -194,7 +208,7 @@ RSpec.describe SellAction, type: :service do
     end
 
     context 'with invalid params' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 20.0) }
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
       it 'returns false without running' do
         initial_cash = game.cash

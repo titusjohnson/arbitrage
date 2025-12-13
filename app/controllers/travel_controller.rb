@@ -1,6 +1,7 @@
 class TravelController < ApplicationController
   def index
     @locations = Location.all.order(:name)
+    @recently_visited_location_ids = current_game.recently_visited_locations.pluck(:id)
   end
 
   def create
@@ -15,4 +16,5 @@ class TravelController < ApplicationController
       redirect_to travel_path
     end
   end
+
 end

@@ -42,6 +42,9 @@ class TravelAction < GameAction
 
       game.save!
 
+      # Record location visit for "buddies in town" feature
+      game.record_location_visit(destination)
+
       # Log the travel event
       create_log(destination, "Traveled to #{destination.name} for $#{travel_cost}.")
 

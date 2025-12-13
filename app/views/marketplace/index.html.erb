@@ -74,17 +74,14 @@
               </td>
               <td class="Table__Cell--right">
                 <%= form_with url: marketplace_buy_path, method: :post, style: "display: inline;" do |form| %>
-                  <%= form.hidden_field :resource_id, value: resource.id %>
                   <%= form.hidden_field :location_resource_id, value: location_resource.id %>
                   <%= form.hidden_field :quantity, value: 1 %>
-                  <%= form.hidden_field :price_per_unit, value: location_resource.current_price %>
                   <%= form.submit "Buy", class: "button button--primary" %>
                 <% end %>
                 <% if has_inventory %>
                   <%= form_with url: marketplace_sell_path, method: :post, style: "display: inline;" do |form| %>
-                    <%= form.hidden_field :resource_id, value: resource.id %>
+                    <%= form.hidden_field :location_resource_id, value: location_resource.id %>
                     <%= form.hidden_field :quantity, value: 1 %>
-                    <%= form.hidden_field :price_per_unit, value: location_resource.current_price %>
                     <%= form.submit "Sell", class: "button" %>
                   <% end %>
                 <% end %>

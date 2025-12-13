@@ -2,37 +2,43 @@ require 'rails_helper'
 
 RSpec.describe BuyAction, type: :service do
   let(:game) { create(:game, cash: 1000.0, inventory_capacity: 100) }
+  let(:location) { create(:location) }
   let(:resource) { create(:resource, inventory_size: 5) }
+  let(:location_resource) { create(:location_resource, location: location, resource: resource, current_price: 15.50) }
+
+  before do
+    game.update!(current_location_id: location.id)
+  end
 
   describe '#valid?' do
     context 'with valid params' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
       it 'is valid' do
         expect(action).to be_valid
       end
     end
 
-    context 'without resource_id' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 15.50) }
+    context 'without location_resource_id' do
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:resource_id]).to include("can't be blank")
+        expect(action.errors[:location_resource_id]).to include("can't be blank")
       end
     end
 
-    context 'with non-existent resource' do
-      let(:action) { described_class.new(game, resource_id: 99999, quantity: 10, price_per_unit: 15.50) }
+    context 'with non-existent location_resource' do
+      let(:action) { described_class.new(game, location_resource_id: 99999, quantity: 10) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:resource_id]).to include("does not exist")
+        expect(action.errors[:location_resource_id]).to include("does not exist")
       end
     end
 
     context 'with zero quantity' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 0, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 0) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -41,7 +47,7 @@ RSpec.describe BuyAction, type: :service do
     end
 
     context 'with negative quantity' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: -5, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: -5) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -49,17 +55,8 @@ RSpec.describe BuyAction, type: :service do
       end
     end
 
-    context 'with zero price' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 0) }
-
-      it 'is invalid' do
-        expect(action).not_to be_valid
-        expect(action.errors[:price_per_unit]).to include("must be greater than 0")
-      end
-    end
-
     context 'with insufficient cash' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 100, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 100) }
 
       it 'is invalid' do
         expect(action).not_to be_valid
@@ -68,7 +65,7 @@ RSpec.describe BuyAction, type: :service do
     end
 
     context 'with insufficient inventory space' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 25, price_per_unit: 10.0) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 25) }
       # 25 units * 5 size = 125 space needed, but only 100 available
 
       it 'is invalid' do
@@ -79,12 +76,7 @@ RSpec.describe BuyAction, type: :service do
   end
 
   describe '#run' do
-    let(:location) { create(:location) }
-    let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 15.50) }
-
-    before do
-      game.update!(current_location_id: location.id)
-    end
+    let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
     context 'with valid action' do
       it 'creates an inventory item' do
@@ -105,13 +97,8 @@ RSpec.describe BuyAction, type: :service do
         }.to change { game.reload.total_purchases }.by(10)
       end
 
-      it 'returns success result' do
-        result = action.run
-
-        expect(result[:success]).to be true
-        expect(result[:resource]).to eq(resource)
-        expect(result[:quantity]).to eq(10)
-        expect(result[:total_cost]).to eq(155.0)
+      it 'returns true on success' do
+        expect(action.run).to be true
       end
 
       it 'stores the correct purchase price' do
@@ -124,19 +111,17 @@ RSpec.describe BuyAction, type: :service do
     end
 
     context 'with invalid action' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
-      it 'raises an error' do
-        expect {
-          action.run
-        }.to raise_error("Cannot run invalid action")
+      it 'returns false' do
+        expect(action.run).to be false
       end
     end
   end
 
   describe '#call' do
     context 'with valid params' do
-      let(:action) { described_class.new(game, resource_id: resource.id, quantity: 10, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: location_resource.id, quantity: 10) }
 
       it 'validates and runs the action' do
         expect(action.call).to be true
@@ -145,7 +130,7 @@ RSpec.describe BuyAction, type: :service do
     end
 
     context 'with invalid params' do
-      let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 15.50) }
+      let(:action) { described_class.new(game, location_resource_id: nil, quantity: 10) }
 
       it 'returns false without running' do
         expect(action.call).to be false
