@@ -8,6 +8,7 @@
 #  current_price      :decimal(10, 2)   not null
 #  last_refreshed_day :integer          not null
 #  price_direction    :decimal(3, 2)    default(0.0), not null
+#  price_history      :text
 #  price_momentum     :decimal(3, 2)    default(0.5), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
@@ -35,6 +36,9 @@ class LocationResource < ApplicationRecord
   belongs_to :location
   belongs_to :resource
 
+  # Serialize price_history as JSON
+  serialize :price_history, coder: JSON
+
   # Validations
   validates :current_price, presence: true, numericality: { greater_than: 0 }
   validates :last_refreshed_day, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
@@ -46,11 +50,61 @@ class LocationResource < ApplicationRecord
   scope :stale, ->(current_day) { where("last_refreshed_day < ?", current_day - 1) }
 
   # Class methods
+  # Generate historical price data for a location resource
+  # This simulates price movements over past days
+  def self.generate_price_history(location_resource, days: 30)
+    return if location_resource.price_history.present? && location_resource.price_history.keys.size >= days
+
+    base_price = location_resource.base_price || location_resource.current_price
+    history = {}
+
+    # Start with a price variation from base
+    current_price = base_price * rand(0.8..1.2)
+    direction = rand(-1.0..1.0).round(2)
+    momentum = rand(0.3..0.7).round(2)
+
+    # Generate prices for each day
+    (1..days).each do |day|
+      # Record the price
+      history[day.to_s] = current_price.round(2)
+
+      # Update direction based on momentum decay (creates waves)
+      decay_strength = direction.abs * 0.15
+      momentum_decay = direction > 0 ? -decay_strength : decay_strength
+
+      # Add some randomness
+      volatility_factor = location_resource.resource.price_volatility / 100.0
+      random_force = rand(-0.2..0.2) * volatility_factor
+
+      # Update direction
+      direction = (direction + momentum_decay + random_force).clamp(-1.0, 1.0).round(2)
+
+      # Update momentum
+      if direction != 0
+        momentum = [momentum + 0.05, 1.0].min
+      else
+        momentum = [momentum - 0.1, 0.1].max
+      end
+
+      # Calculate price change
+      max_daily_change = base_price * volatility_factor * 0.15
+      price_change = direction * momentum * max_daily_change
+
+      # Apply change
+      current_price = (current_price + price_change).clamp(base_price * 0.2, base_price * 1.8)
+      current_price = [current_price, 1.0].max
+    end
+
+    # Update the location resource with the generated history
+    location_resource.update_column(:price_history, history.to_json)
+  end
+
   def self.seed_for_location(game, location)
     # Don't re-seed if already seeded for this game/location
     return if exists?(game: game, location: location)
 
-    resources_to_add = select_resources_for_location(location, game: game)
+    # Get ALL resources instead of a subset
+    resources_to_add = Resource.all
 
     transaction do
       resources_to_add.each do |resource|
@@ -69,6 +123,9 @@ class LocationResource < ApplicationRecord
           price_direction: rand(-1.0..1.0).round(2), # Random initial direction
           price_momentum: 0.5 # Start with medium momentum
         )
+
+        # Generate 30 days of price history
+        generate_price_history(location_resource, days: 30)
 
         # Apply event effects to initial prices and quantities
         event_effects = EventEffectsService.new(game, location_resource).call
@@ -240,6 +297,43 @@ class LocationResource < ApplicationRecord
     )
   end
 
+  # Price history methods
+  def record_price_for_day(day, price)
+    # Parse existing history or start with empty hash
+    history = if price_history.is_a?(String)
+                JSON.parse(price_history)
+              elsif price_history.is_a?(Hash)
+                price_history
+              else
+                {}
+              end
+
+    history[day.to_s] = price.to_f
+    update_column(:price_history, history.to_json)
+  end
+
+  def get_price_for_day(day)
+    history = if price_history.is_a?(String)
+                JSON.parse(price_history)
+              elsif price_history.is_a?(Hash)
+                price_history
+              else
+                {}
+              end
+    history[day.to_s]&.to_f
+  end
+
+  def price_history_array(days: 30)
+    history = if price_history.is_a?(String)
+                JSON.parse(price_history)
+              elsif price_history.is_a?(Hash)
+                price_history
+              else
+                {}
+              end
+    (1..days).map { |day| history[day.to_s]&.to_f }
+  end
+
   # Updates price and quantity based on market dynamics
   # Creates parabolic price movements that shift over time
   def update_market_dynamics!(current_day)
@@ -276,6 +370,9 @@ class LocationResource < ApplicationRecord
       available_quantity: new_quantity,
       last_refreshed_day: current_day
     )
+
+    # Record price in history
+    record_price_for_day(current_day, new_price)
   end
 
   private

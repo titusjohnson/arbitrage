@@ -19,8 +19,7 @@ class GameTurnAction < GameAction
   # that runs as part of other validated actions
   validate :game_must_be_continuable, if: -> { false }
 
-  # TODO: TEMPORARY - Set back to 0.20 after testing
-  EVENT_TRIGGER_CHANCE = 1.0 # 100% chance to trigger an event each turn (TESTING ONLY)
+  EVENT_TRIGGER_CHANCE = 0.20 # 20% chance to trigger an event each turn
 
   def initialize(game)
     super(game, {})

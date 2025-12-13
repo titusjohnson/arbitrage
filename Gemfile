@@ -25,6 +25,9 @@ gem "bcrypt", "~> 3.1.7"
 # Tagging extension for ActiveRecord [https://github.com/pat/gutentag]
 gem "gutentag", "~> 3.0"
 
+# Sparkline charts with vanilla JS [https://github.com/railsjazz/peity_vanilla_rails]
+gem "peity_vanilla_rails"
+
 # Load environment variables from .env file [https://github.com/bkeepers/dotenv]
 gem "dotenv-rails", groups: [ :development, :test ]
 

@@ -1578,3 +1578,46 @@ input[type="submit"] {
         color: #263238;
     }
 }
+
+// ============================================
+// Sparkline
+// ============================================
+
+.sparkline {
+    display: inline-block;
+    vertical-align: middle;
+
+    svg {
+        display: block;
+        shape-rendering: crispEdges; // Make lines sharper
+    }
+
+    &--price {
+        opacity: 0.8;
+        transition: opacity 0.2s;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+.price-with-sparkline {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    // Stack price and change info
+    > div {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.125rem;
+
+        span {
+            font-size: 11px;
+            white-space: nowrap;
+        }
+    }
+}
