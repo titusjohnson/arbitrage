@@ -173,6 +173,56 @@ bundle exec rspec --format documentation
 
 - **Brakeman**: Security scanning (`bin/brakeman`)
 - **Rubocop**: Code style linting (`bin/rubocop`)
+- **Annotaterb**: Schema annotations (`bundle exec annotaterb models`)
+
+## Documentation
+
+The `docs/` folder contains detailed design documents for different aspects of the game:
+
+### Domain Documentation
+These documents explain the game's domain models, systems, and mechanics:
+
+- **`GAMEPLAY.md`** - Core gameplay design inspired by Drug Wars (1984)
+  - Victory conditions and scoring system
+  - Market dynamics and price fluctuations
+  - Random events and strategic elements
+  - Research on original game and modern clones
+
+- **`events_system_design.md`** - Events system architecture
+  - Tag-based event modifiers affecting resources and locations
+  - Database schema for Events and GameEvents
+  - Event rarity system (Common → Exceptional)
+  - Three detailed event examples (Hurricane Havoc, Tech Bubble Burst, Prohibition Flashback)
+  - Implementation details for tag matching and effect stacking
+
+- **`LOCATION_TAGS.md`** - Location tagging system
+  - Economic/Industry tags (tech_hub, port_city, manufacturing, etc.)
+  - Demographic/Cultural tags (wealthy, tourist_destination, college_town, etc.)
+  - Geographic tags (coastal, landlocked, regional classifications)
+  - Tag-to-resource interaction examples
+  - Example city configurations
+
+### Task-Specific Documentation
+These documents provide guidance for specific development tasks:
+
+- **`TURNS.md`** - Turn-based action system
+  - Complete breakdown of player actions (market, location, travel, encounters)
+  - Turn flow and timing (what consumes turns vs. free actions)
+  - Action phasing roadmap (MVP → Advanced Features)
+  - UI considerations and wireframes
+
+- **`STYLE_GUIDE.md`** - CSS/SCSS development guide
+  - BEM naming conventions (Block__Element--Modifier)
+  - Mid-2000s design system (colors, typography, tactile buttons)
+  - dartsass auto-compilation workflow with `bin/dev`
+  - Component reference (header, forms, buttons, tables, alerts)
+
+**When to use these docs:**
+- Building event-related features? → Read `events_system_design.md`
+- Adding new locations? → Check `LOCATION_TAGS.md`
+- Working on player actions? → Reference `TURNS.md`
+- Styling components? → Follow `STYLE_GUIDE.md`
+- Understanding game design? → Start with `GAMEPLAY.md`
 
 ## Deployment
 
