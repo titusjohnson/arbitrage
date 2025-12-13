@@ -1,76 +1,71 @@
-<div class="inventory">
-  <h1 class="inventory__title">Inventory</h1>
-
-  <div class="inventory-stats">
-    <div class="inventory-stats__item">
-      <span class="inventory-stats__label">Capacity Used:</span>
-      <span class="inventory-stats__value"><%= @game.current_inventory_size %> / <%= @game.inventory_capacity %></span>
-    </div>
-    <div class="inventory-stats__item">
-      <span class="inventory-stats__label">Total Value:</span>
-      <span class="inventory-stats__value">$<%= number_with_precision(@game.inventory_value, precision: 2, delimiter: ',') %></span>
-    </div>
-    <div class="inventory-stats__item">
-      <span class="inventory-stats__label">Unique Items:</span>
-      <span class="inventory-stats__value"><%= @inventory_items.count %></span>
-    </div>
+<div class="Page">
+  <div class="Page__Header">
+    <h1 class="Page__Title">Inventory</h1>
+    <p class="Page__Subtitle">
+      Capacity: <%= @game.current_inventory_size %> / <%= @game.inventory_capacity %>
+      | Total Value: $<%= number_with_delimiter(@game.inventory_value, delimiter: ',') %>
+      | Items: <%= @inventory_items.count %>
+    </p>
   </div>
 
-  <% if @inventory_items.any? %>
-    <div class="inventory-items">
-      <% @inventory_items.each do |item| %>
-        <div class="inventory-item">
-          <div class="inventory-item__header">
-            <h2 class="inventory-item__name"><%= item.resource.name %></h2>
-            <span class="inventory-item__rarity inventory-item__rarity--<%= item.resource.rarity %>">
-              <%= item.resource.rarity.humanize %>
-            </span>
-          </div>
-
-          <% if item.resource.description.present? %>
-            <p class="inventory-item__description"><%= item.resource.description %></p>
-          <% end %>
-
-          <div class="inventory-item__details">
-            <div class="inventory-item__detail">
-              <span class="inventory-item__detail-label">Quantity:</span>
-              <span class="inventory-item__detail-value"><%= item.quantity %></span>
-            </div>
-
-            <div class="inventory-item__detail">
-              <span class="inventory-item__detail-label">Purchase Price:</span>
-              <span class="inventory-item__detail-value">$<%= number_with_precision(item.purchase_price, precision: 2, delimiter: ',') %></span>
-            </div>
-
-            <div class="inventory-item__detail">
-              <span class="inventory-item__detail-label">Total Value:</span>
-              <span class="inventory-item__detail-value">$<%= number_with_precision(item.total_value, precision: 2, delimiter: ',') %></span>
-            </div>
-
-            <div class="inventory-item__detail">
-              <span class="inventory-item__detail-label">Purchased:</span>
-              <span class="inventory-item__detail-value">Day <%= item.purchase_day %></span>
-            </div>
-
-            <div class="inventory-item__detail">
-              <span class="inventory-item__detail-label">Size:</span>
-              <span class="inventory-item__detail-value"><%= item.resource.inventory_size %> per unit</span>
-            </div>
-
-            <% if item.resource.tag_names.any? %>
-              <div class="inventory-item__tags">
-                <% item.resource.tag_names.each do |tag| %>
-                  <span class="inventory-item__tag"><%= tag.humanize %></span>
+  <div class="Page__Content">
+    <% if @inventory_items.any? %>
+      <table class="Table">
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th class="Table__Cell--right">Quantity</th>
+            <th class="Table__Cell--right">Purchase Price</th>
+            <th class="Table__Cell--right">Total Value</th>
+            <th class="Table__Cell--right">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @inventory_items.each do |item| %>
+            <tr>
+              <td>
+                <strong><%= item.resource.name %></strong>
+                <% if item.resource.description.present? %>
+                  <br>
+                  <small class="Text--muted"><%= item.resource.description %></small>
                 <% end %>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="inventory-empty">
-      <p class="inventory-empty__message">Your inventory is empty. Start trading to acquire resources!</p>
-    </div>
-  <% end %>
+              </td>
+              <td class="Table__Cell--right">
+                <strong><%= item.quantity %> units</strong>
+                <br>
+                <small class="Text--muted">
+                  Size: <%= item.resource.inventory_size %> ea
+                </small>
+              </td>
+              <td class="Table__Cell--right">
+                <strong>$<%= number_with_delimiter(item.purchase_price, delimiter: ',') %></strong>
+                <br>
+                <small class="Text--muted">per unit</small>
+              </td>
+              <td class="Table__Cell--right">
+                <strong>$<%= number_with_delimiter(item.total_value, delimiter: ',') %></strong>
+                <br>
+                <small class="Text--muted">
+                  <%= item.resource.rarity.titleize %>
+                </small>
+              </td>
+              <td class="Table__Cell--right">
+                <small class="Text--muted">
+                  Day <%= item.purchase_day %>
+                  <% if item.purchase_location.present? %>
+                    <br>
+                    @ <%= item.purchase_location.name %>
+                  <% end %>
+                </small>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="Alert Alert--info">
+        <p>Your inventory is empty. Start trading to acquire resources!</p>
+      </div>
+    <% end %>
+  </div>
 </div>

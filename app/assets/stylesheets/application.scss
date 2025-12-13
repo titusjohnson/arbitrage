@@ -556,6 +556,7 @@ input[type="submit"] {
     vertical-align: top;
     cursor: default;
     height: 100%;
+    animation: ripple-fade 0.6s ease-out;
 
     &:hover {
         background-color: #fff;
@@ -568,6 +569,7 @@ input[type="submit"] {
         border: none;
         box-shadow: none;
         cursor: default;
+        animation: none;
 
         &:hover {
             background-color: transparent;
@@ -580,6 +582,7 @@ input[type="submit"] {
         background-color: #ffffff;
         border-color: #999;
         cursor: default;
+        animation: none;
 
         &:hover {
             background-color: #ffffff;
@@ -590,31 +593,37 @@ input[type="submit"] {
     &--distance-1 {
         background-color: #fefefe;
         border-color: #bbb;
+        animation-delay: 0.1s;
     }
 
     &--distance-2 {
         background-color: #f8f8f8;
         border-color: #b8b8b8;
+        animation-delay: 0.2s;
     }
 
     &--distance-3 {
         background-color: #f2f2f2;
         border-color: #b5b5b5;
+        animation-delay: 0.3s;
     }
 
     &--distance-4 {
         background-color: #ececec;
         border-color: #b2b2b2;
+        animation-delay: 0.4s;
     }
 
     &--distance-5 {
         background-color: #e6e6e6;
         border-color: #afafaf;
+        animation-delay: 0.5s;
     }
 
     &--distance-6 {
         background-color: #e0e0e0;
         border-color: #acacac;
+        animation-delay: 0.6s;
     }
 
     &--distance-7,
@@ -622,6 +631,7 @@ input[type="submit"] {
     &--distance-9 {
         background-color: #d0d0d0;
         border-color: #a0a0a0;
+        animation-delay: 0.7s;
     }
 }
 
@@ -846,4 +856,22 @@ input[type="submit"] {
 .Text--danger {
     color: #dc3545;
     font-weight: bold;
+}
+
+// ============================================
+// Animations
+// ============================================
+
+@keyframes ripple-fade {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
