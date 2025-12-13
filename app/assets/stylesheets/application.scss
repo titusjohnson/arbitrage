@@ -371,6 +371,11 @@ a {
     td.Table__Cell--right:last-child {
         white-space: nowrap;
         min-width: 140px;
+
+        form {
+            display: inline-block;
+            margin: 0;
+        }
     }
 }
 
@@ -556,7 +561,7 @@ input[type="submit"] {
     vertical-align: top;
     cursor: default;
     height: 100%;
-    animation: ripple-fade 0.6s ease-out;
+    animation: ripple-fade 1s ease-in;
 
     &:hover {
         background-color: #fff;
@@ -864,14 +869,12 @@ input[type="submit"] {
 
 @keyframes ripple-fade {
     0% {
-        opacity: 0.5;
-        transform: scale(0.95);
+        opacity: 0.7;
     }
-    50% {
-        opacity: 0.5;
+    75% {
+        opacity: 0.9;
     }
     100% {
         opacity: 1;
-        transform: scale(1);
     }
 }

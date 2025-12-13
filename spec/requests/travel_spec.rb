@@ -35,10 +35,10 @@ RSpec.describe "Travel", type: :request do
         }.to change { game.reload.current_location_id }.from(location1.id).to(location2.id)
       end
 
-      it "deducts travel cost" do
+      it "does not deduct travel cost for adjacent location (free)" do
         expect {
           post travel_path, params: { location_id: location2.id }
-        }.to change { game.reload.cash }.by(-100)
+        }.not_to change { game.reload.cash }
       end
 
       it "advances the day" do
@@ -69,10 +69,10 @@ RSpec.describe "Travel", type: :request do
       end
 
       it "deducts correct travel cost based on distance" do
-        # Distance from (0,0) to (2,2) is 4, so cost is $400
+        # Distance from (0,0) to (2,2) is 4, cost is (4-1)*100 = $300
         expect {
           post travel_path, params: { location_id: location4.id }
-        }.to change { game.reload.cash }.by(-400)
+        }.to change { game.reload.cash }.by(-300)
       end
 
       it "redirects to root with success message" do
@@ -90,12 +90,12 @@ RSpec.describe "Travel", type: :request do
 
       it "does not change location" do
         expect {
-          post travel_path, params: { location_id: location2.id }
+          post travel_path, params: { location_id: location4.id } # Far location requires cash
         }.not_to change { game.reload.current_location_id }
       end
 
       it "redirects to travel with error message" do
-        post travel_path, params: { location_id: location2.id }
+        post travel_path, params: { location_id: location4.id } # Far location requires cash
         expect(response).to redirect_to(travel_path)
         follow_redirect!
         expect(response.body).to include("Not enough cash for this journey")

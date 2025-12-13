@@ -43,15 +43,15 @@ RSpec.describe TravelAction, type: :service do
     end
 
     context 'with insufficient cash' do
-      let(:action) { described_class.new(game, destination_id: location2.id) }
+      let(:action) { described_class.new(game, destination_id: location3.id) } # Far destination costs money
 
       before do
-        game.update!(cash: 50) # Not enough for $100 travel cost
+        game.update!(cash: 50) # Not enough for $200 travel cost (distance 4, so (4-1)*100 = $300)
       end
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:base]).to include("Not enough cash for this journey (need $100, have $50.0)")
+        expect(action.errors[:base]).to include("Not enough cash for this journey (need $300, have $50.0)")
       end
     end
 
@@ -79,10 +79,10 @@ RSpec.describe TravelAction, type: :service do
         }.to change { game.reload.current_location_id }.from(location1.id).to(location2.id)
       end
 
-      it 'reduces cash by $100' do
+      it 'does not reduce cash for adjacent travel (free)' do
         expect {
           action.run
-        }.to change { game.reload.cash }.by(-100)
+        }.not_to change { game.reload.cash }
       end
 
       it 'advances the day' do
@@ -106,7 +106,7 @@ RSpec.describe TravelAction, type: :service do
       it 'logs the travel message' do
         action.run
         log = game.reload.event_logs.last
-        expect(log.message).to eq("Traveled to #{location2.name}")
+        expect(log.message).to eq("Traveled to #{location2.name} for $0.")
       end
 
       it 'associates the log with the destination location' do

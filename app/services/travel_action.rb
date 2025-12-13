@@ -69,9 +69,12 @@ class TravelAction < GameAction
   end
 
   def calculate_travel_cost
-    # Cost is $100 per square traveled
+    # Adjacent locations (distance = 1) are free (walk/drive)
+    # Longer distances cost $100 per square beyond the first
     distance = current_location.distance_to(destination)
-    distance * 100
+    return 0 if distance <= 1
+
+    (distance - 1) * 100
   end
 
   def destination_must_exist
