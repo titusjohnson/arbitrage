@@ -15,6 +15,22 @@
       # Create sanitized filename from event name
       svg_filename = event.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
       svg_partial_path = "events/_graphics/#{svg_filename}"
+
+      # Extract affected tags from resource_effects
+      affected_tags = []
+      if event.resource_effects.present?
+        if event.resource_effects['price_modifiers']
+          event.resource_effects['price_modifiers'].each do |mod|
+            affected_tags.concat(mod['tags'] || [])
+          end
+        end
+        if event.resource_effects['availability_modifiers']
+          event.resource_effects['availability_modifiers'].each do |mod|
+            affected_tags.concat(mod['tags'] || [])
+          end
+        end
+      end
+      affected_tags = affected_tags.uniq.sort
     %>
     <div class="event-banner event-banner--<%= event.rarity %> <%= 'event-banner--unseen' if is_unseen %>">
       <div class="event-banner__container">
@@ -24,6 +40,13 @@
         <div class="event-banner__content">
           <h3 class="event-banner__title"><%= event.name %></h3>
           <p class="event-banner__description"><%= event.description %></p>
+          <% if affected_tags.any? %>
+            <div class="tags" style="margin: 0.5rem 0;">
+              <% affected_tags.each do |tag| %>
+                <span class="tag tag--<%= tag.gsub('_', '-') %>"><%= tag.gsub('_', ' ') %></span>
+              <% end %>
+            </div>
+          <% end %>
           <div class="event-banner__meta">
             <%= event.event_type&.titleize || 'Event' %> •
             Severity: <%= event.severity %>/5 •
@@ -72,6 +95,13 @@
                 <% if resource.description.present? %>
                   <br>
                   <small class="Text--muted"><%= resource.description %></small>
+                <% end %>
+                <% if resource.tags.any? %>
+                  <div class="tags">
+                    <% resource.tags.each do |tag| %>
+                      <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
+                    <% end %>
+                  </div>
                 <% end %>
               </td>
               <td class="Table__Cell--right">

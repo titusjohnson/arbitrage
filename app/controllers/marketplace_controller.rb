@@ -4,12 +4,12 @@ class MarketplaceController < ApplicationController
     @location = @game.current_location
     @location_resources = LocationResource
       .for_game_and_location(@game, @location)
-      .includes(:resource)
+      .includes(resource: :tags)
       .order('resources.name ASC')
 
     # Get inventory for checking ownership and calculating profit/loss
     @inventory_by_resource = @game.inventory_items
-      .includes(:resource)
+      .includes(resource: :tags)
       .group_by(&:resource_id)
   end
 

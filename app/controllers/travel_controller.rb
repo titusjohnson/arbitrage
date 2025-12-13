@@ -1,6 +1,6 @@
 class TravelController < ApplicationController
   def index
-    @locations = Location.all.order(:name)
+    @locations = Location.includes(:tags).all.order(:name)
     @recently_visited_location_ids = current_game.recently_visited_locations.pluck(:id)
   end
 
