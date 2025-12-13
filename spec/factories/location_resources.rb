@@ -3,6 +3,7 @@
 # Table name: location_resources
 #
 #  id                 :integer          not null, primary key
+#  available_quantity :integer          default(100), not null
 #  current_price      :decimal(10, 2)   not null
 #  last_refreshed_day :integer          not null
 #  created_at         :datetime         not null

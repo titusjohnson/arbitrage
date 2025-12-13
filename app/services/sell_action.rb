@@ -2,9 +2,8 @@
 #
 # Usage:
 #   action = SellAction.new(game, resource_id: 5, quantity: 10, price_per_unit: 20.00)
-#   if action.valid?
-#     result = action.run
-#     # result is a hash with: { success: true, resource: Resource, quantity: 10, total_revenue: 200.00, profit: 50.00 }
+#   if action.run
+#     # Sale successful
 #   else
 #     action.errors.full_messages
 #   end
@@ -33,38 +32,33 @@ class SellAction < GameAction
   validate :must_own_enough_resources
 
   def run
-    raise "Cannot run invalid action" unless valid?
+    return false unless valid?
 
-    result = {
-      success: false,
-      resource: nil,
-      quantity: 0,
-      total_revenue: 0,
-      profit: 0
-    }
+    ActiveRecord::Base.transaction do
+      total_revenue = (price_per_unit * quantity).round(2)
 
-    total_revenue = (price_per_unit * quantity).round(2)
+      # Calculate profit before selling (need to check purchase prices)
+      profit = calculate_profit
 
-    # Calculate profit before selling (need to check purchase prices)
-    profit = calculate_profit
-
-    # Use the existing game method which handles the transaction
-    if game.sell_resource(resource, quantity, price_per_unit)
-      result[:success] = true
-      result[:resource] = resource
-      result[:quantity] = quantity
-      result[:total_revenue] = total_revenue
-      result[:profit] = profit
+      # Use the existing game method which handles the transaction
+      unless game.sell_resource(resource, quantity, price_per_unit)
+        errors.add(:base, "Failed to complete sale")
+        raise ActiveRecord::Rollback
+      end
 
       # Update best deal if this is a new record
       if profit > game.best_deal_profit
         game.update!(best_deal_profit: profit)
       end
-    else
-      errors.add(:base, "Failed to complete sale")
+
+      # Log the sale
+      create_log(resource, "Sold #{quantity} #{resource.name.pluralize(quantity)} for $#{total_revenue} (profit: $#{profit}).")
     end
 
-    result
+    true
+  rescue ActiveRecord::RecordInvalid => e
+    errors.add(:base, "Failed to save game: #{e.message}")
+    false
   end
 
   private

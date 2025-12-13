@@ -7,7 +7,7 @@ require 'rails_helper'
 #  id                  :integer          not null, primary key
 #  bank_balance        :decimal(10, 2)   default(0.0), not null
 #  best_deal_profit    :decimal(10, 2)   default(0.0), not null
-#  cash                :decimal(10, 2)   default(2000.0), not null
+#  cash                :decimal(10, 2)   default(5000.0), not null
 #  completed_at        :datetime
 #  current_day         :integer          default(1), not null
 #  debt                :decimal(10, 2)   default(0.0), not null

@@ -27,4 +27,19 @@ class MarketplaceController < ApplicationController
       redirect_to marketplace_path, alert: action.errors.full_messages.join(", ")
     end
   end
+
+  def sell
+    action = SellAction.new(
+      current_game,
+      resource_id: params[:resource_id],
+      quantity: params[:quantity],
+      price_per_unit: params[:price_per_unit]
+    )
+
+    if action.call
+      redirect_to marketplace_path, notice: "Successfully sold #{params[:quantity]} of #{action.send(:resource).name}"
+    else
+      redirect_to marketplace_path, alert: action.errors.full_messages.join(", ")
+    end
+  end
 end

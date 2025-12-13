@@ -81,7 +81,12 @@
                   <%= form.submit "Buy", class: "button button--primary" %>
                 <% end %>
                 <% if has_inventory %>
-                  <button class="button">Sell</button>
+                  <%= form_with url: marketplace_sell_path, method: :post, style: "display: inline;" do |form| %>
+                    <%= form.hidden_field :resource_id, value: resource.id %>
+                    <%= form.hidden_field :quantity, value: 1 %>
+                    <%= form.hidden_field :price_per_unit, value: location_resource.current_price %>
+                    <%= form.submit "Sell", class: "button" %>
+                  <% end %>
                 <% end %>
               </td>
             </tr>

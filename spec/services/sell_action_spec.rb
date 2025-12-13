@@ -94,14 +94,21 @@ RSpec.describe SellAction, type: :service do
         }.to change { game.reload.total_sales }.by(10)
       end
 
-      it 'returns success result with profit calculation' do
-        result = action.run
+      it 'returns true on success' do
+        expect(action.run).to be true
+      end
 
-        expect(result[:success]).to be true
-        expect(result[:resource]).to eq(resource)
-        expect(result[:quantity]).to eq(10)
-        expect(result[:total_revenue]).to eq(200.0)
-        expect(result[:profit]).to eq(100.0) # Sold for $20, bought for $10 = $10 profit per unit
+      it 'creates an event log' do
+        expect {
+          action.run
+        }.to change { game.event_logs.count }.by(1)
+
+        log = game.event_logs.last
+        expect(log.loggable).to eq(resource)
+        expect(log.message).to include("Sold 10")
+        expect(log.message).to include(resource.name.pluralize(10))
+        expect(log.message).to include("$200.0")
+        expect(log.message).to include("profit: $100.0")
       end
 
       it 'updates best_deal_profit if this is a new record' do
@@ -139,22 +146,33 @@ RSpec.describe SellAction, type: :service do
       end
 
       it 'calculates profit correctly across stacks' do
-        result = action.run
+        action.run
 
         # Sold 15 units for $25 each = $375 revenue
-        # Cost: 10 units at $10 + 5 units at $15 = $100 + $75 = $175
-        # Profit: $375 - $175 = $200
-        expect(result[:profit]).to eq(200.0)
+        # Cost: 20 units at $10 (using first 15) = $150
+        # Profit: $375 - $150 = $225
+        log = game.event_logs.last
+        expect(log.message).to include("profit: $225.0")
       end
     end
 
     context 'with invalid action' do
       let(:action) { described_class.new(game, resource_id: nil, quantity: 10, price_per_unit: 20.0) }
 
-      it 'raises an error' do
+      it 'returns false' do
+        expect(action.run).to be false
+      end
+
+      it 'does not change inventory' do
         expect {
           action.run
-        }.to raise_error("Cannot run invalid action")
+        }.not_to change { game.inventory_items.count }
+      end
+
+      it 'does not change cash' do
+        initial_cash = game.cash
+        action.run
+        expect(game.reload.cash).to eq(initial_cash)
       end
     end
   end

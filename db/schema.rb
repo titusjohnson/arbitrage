@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_13_022710) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_13_032834) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -53,7 +53,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_022710) do
   create_table "games", force: :cascade do |t|
     t.integer "current_day", default: 1, null: false
     t.integer "current_location_id"
-    t.decimal "cash", precision: 10, scale: 2, default: "2000.0", null: false
+    t.decimal "cash", precision: 10, scale: 2, default: "5000.0", null: false
     t.decimal "bank_balance", precision: 10, scale: 2, default: "0.0", null: false
     t.decimal "debt", precision: 10, scale: 2, default: "0.0", null: false
     t.string "status", default: "active", null: false

@@ -2,9 +2,14 @@
 #
 #                                   Prefix Verb URI Pattern                                                                                       Controller#Action
 #                       rails_health_check GET  /up(.:format)                                                                                     rails/health#show
-#                                     root GET  /                                                                                                 pages#home
+#                                     root GET  /                                                                                                 marketplace#index
+#                              marketplace GET  /marketplace(.:format)                                                                            marketplace#index
+#                          marketplace_buy POST /marketplace/buy(.:format)                                                                        marketplace#buy
+#                         marketplace_sell POST /marketplace/sell(.:format)                                                                       marketplace#sell
 #                                   travel GET  /travel(.:format)                                                                                 travel#index
+#                                          POST /travel(.:format)                                                                                 travel#create
 #                                inventory GET  /inventory(.:format)                                                                              inventory#index
+#                                      log GET  /log(.:format)                                                                                    event_logs#index
 #         turbo_recede_historical_location GET  /recede_historical_location(.:format)                                                             turbo/native/navigation#recede
 #         turbo_resume_historical_location GET  /resume_historical_location(.:format)                                                             turbo/native/navigation#resume
 #        turbo_refresh_historical_location GET  /refresh_historical_location(.:format)                                                            turbo/native/navigation#refresh
@@ -49,6 +54,7 @@ Rails.application.routes.draw do
   # Marketplace
   get "marketplace", to: "marketplace#index"
   post "marketplace/buy", to: "marketplace#buy", as: :marketplace_buy
+  post "marketplace/sell", to: "marketplace#sell", as: :marketplace_sell
 
   # Travel
   get "travel", to: "travel#index"
