@@ -48,6 +48,13 @@ class TravelAction < GameAction
       # Seed location resources on first visit (fog of war mechanic)
       LocationResource.seed_for_location(game, destination)
 
+      # Update market prices and quantities across all locations
+      game_turn_action = GameTurnAction.new(game)
+      unless game_turn_action.run
+        errors.add(:base, "Failed to update market: #{game_turn_action.errors.full_messages.join(', ')}")
+        raise ActiveRecord::Rollback
+      end
+
       # TODO: Trigger any location-based events or random encounters
       # trigger_travel_events
     end

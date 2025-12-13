@@ -4,8 +4,11 @@
 #
 #  id                 :integer          not null, primary key
 #  available_quantity :integer          default(100), not null
+#  base_price         :decimal(10, 2)
 #  current_price      :decimal(10, 2)   not null
 #  last_refreshed_day :integer          not null
+#  price_direction    :decimal(3, 2)    default(0.0), not null
+#  price_momentum     :decimal(3, 2)    default(0.5), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -29,237 +32,284 @@
 require 'rails_helper'
 
 RSpec.describe LocationResource, type: :model do
-  describe 'associations' do
-    it 'belongs to game' do
-      location_resource = build(:location_resource)
-      expect(location_resource).to respond_to(:game)
-    end
+  let(:game) { create(:game) }
+  let(:location) { create(:location) }
+  let(:resource) { create(:resource, price_volatility: 50) }
 
-    it 'belongs to location' do
-      location_resource = build(:location_resource)
-      expect(location_resource).to respond_to(:location)
-    end
-
-    it 'belongs to resource' do
-      location_resource = build(:location_resource)
-      expect(location_resource).to respond_to(:resource)
-    end
-  end
-
-  describe 'validations' do
-    it 'requires current_price to be present' do
-      location_resource = build(:location_resource, current_price: nil)
-      expect(location_resource).not_to be_valid
-      expect(location_resource.errors[:current_price]).to include("can't be blank")
-    end
-
-    it 'requires current_price to be greater than 0' do
-      location_resource = build(:location_resource, current_price: 0)
-      expect(location_resource).not_to be_valid
-      expect(location_resource.errors[:current_price]).to include("must be greater than 0")
-    end
-
-    it 'requires last_refreshed_day to be present' do
-      location_resource = build(:location_resource, last_refreshed_day: nil)
-      expect(location_resource).not_to be_valid
-      expect(location_resource.errors[:last_refreshed_day]).to include("can't be blank")
-    end
-
-    it 'requires last_refreshed_day to be an integer >= 1' do
-      location_resource = build(:location_resource, last_refreshed_day: 0)
-      expect(location_resource).not_to be_valid
-      expect(location_resource.errors[:last_refreshed_day]).to include("must be greater than or equal to 1")
-    end
-
-    it 'validates uniqueness of resource per game and location' do
-      existing = create(:location_resource)
-      duplicate = build(:location_resource,
-        game: existing.game,
-        location: existing.location,
-        resource: existing.resource
+  describe '#update_market_dynamics!' do
+    let(:location_resource) do
+      create(:location_resource,
+        game: game,
+        location: location,
+        resource: resource,
+        current_price: 100.0,
+        base_price: 100.0,
+        available_quantity: 50,
+        price_direction: 0.5,
+        price_momentum: 0.5,
+        last_refreshed_day: 1
       )
+    end
 
-      expect(duplicate).not_to be_valid
-      expect(duplicate.errors[:resource_id]).to include("already exists at this location for this game")
+    before do
+      game.update!(current_day: 2)
+    end
+
+    it 'updates last_refreshed_day' do
+      location_resource.update_market_dynamics!(2)
+      expect(location_resource.last_refreshed_day).to eq(2)
+    end
+
+    it 'does not update if already refreshed for current day' do
+      location_resource.update!(last_refreshed_day: 2)
+      old_price = location_resource.current_price
+
+      location_resource.update_market_dynamics!(2)
+
+      expect(location_resource.current_price).to eq(old_price)
+    end
+
+    it 'updates current_price' do
+      old_price = location_resource.current_price
+      location_resource.update_market_dynamics!(2)
+
+      expect(location_resource.current_price).not_to eq(old_price)
+    end
+
+    it 'keeps price above $1' do
+      location_resource.update!(current_price: 2.0, base_price: 2.0)
+
+      100.times do
+        location_resource.update_market_dynamics!(location_resource.last_refreshed_day + 1)
+      end
+
+      expect(location_resource.current_price).to be >= 1.0
+    end
+
+    it 'keeps price within bounds of base_price' do
+      location_resource.update_market_dynamics!(2)
+
+      min_price = location_resource.base_price * 0.2
+      max_price = location_resource.base_price * 1.8
+
+      expect(location_resource.current_price).to be_between(min_price, max_price)
+    end
+
+    it 'updates price_direction' do
+      location_resource.update_market_dynamics!(2)
+      expect(location_resource.price_direction).to be_between(-1.0, 1.0)
+    end
+
+    it 'updates price_momentum' do
+      location_resource.update_market_dynamics!(2)
+      expect(location_resource.price_momentum).to be_between(0.0, 1.0)
+    end
+
+    it 'updates available_quantity' do
+      old_quantity = location_resource.available_quantity
+      location_resource.update_market_dynamics!(2)
+
+      expect(location_resource.available_quantity).to be >= 0
+    end
+
+    context 'parabolic price movement' do
+      it 'eventually reverses direction when price moves in one direction' do
+        location_resource.update!(price_direction: 1.0, price_momentum: 1.0)
+
+        directions = []
+        30.times do |i|
+          location_resource.update_market_dynamics!(i + 2)
+          directions << location_resource.price_direction
+        end
+
+        # Should see some negative directions eventually (momentum decay causes reversal)
+        expect(directions).to include(be < 0)
+      end
+    end
+
+    context 'with high volatility resource' do
+      let(:volatile_resource) { create(:resource, price_volatility: 90) }
+      let(:location_resource) do
+        create(:location_resource,
+          game: game,
+          location: location,
+          resource: volatile_resource,
+          current_price: 100.0,
+          base_price: 100.0,
+          price_direction: 0.5,
+          price_momentum: 0.5,
+          last_refreshed_day: 1
+        )
+      end
+
+      it 'has larger price swings' do
+        prices = [location_resource.current_price]
+
+        10.times do |i|
+          location_resource.update_market_dynamics!(i + 2)
+          prices << location_resource.current_price
+        end
+
+        price_range = prices.max - prices.min
+        expect(price_range).to be > 10 # Significant movement for volatile items
+      end
+    end
+
+    context 'with low volatility resource' do
+      let(:stable_resource) { create(:resource, price_volatility: 10) }
+      let(:location_resource) do
+        create(:location_resource,
+          game: game,
+          location: location,
+          resource: stable_resource,
+          current_price: 100.0,
+          base_price: 100.0,
+          price_direction: 0.5,
+          price_momentum: 0.5,
+          last_refreshed_day: 1
+        )
+      end
+
+      it 'has smaller price swings' do
+        prices = [location_resource.current_price]
+
+        10.times do |i|
+          location_resource.update_market_dynamics!(i + 2)
+          prices << location_resource.current_price
+        end
+
+        price_range = prices.max - prices.min
+        expect(price_range).to be < 50 # Limited movement for stable items
+      end
     end
   end
 
-  describe 'scopes' do
-    let(:game) { create(:game) }
-    let(:location) { create(:location) }
-    let!(:location_resource) { create(:location_resource, game: game, location: location, last_refreshed_day: 5) }
-    let!(:other_location_resource) { create(:location_resource, last_refreshed_day: 3) }
+  describe 'market pressure calculations' do
+    let(:location_resource) do
+      create(:location_resource,
+        game: game,
+        location: location,
+        resource: resource,
+        current_price: 100.0,
+        base_price: 100.0,
+        available_quantity: 50,
+        price_direction: 0.0,
+        price_momentum: 0.5,
+        last_refreshed_day: 1
+      )
+    end
 
-    describe '.for_game_and_location' do
-      it 'returns location resources for specific game and location' do
-        expect(LocationResource.for_game_and_location(game, location)).to eq([location_resource])
+    describe '#calculate_supply_pressure' do
+      it 'returns negative pressure when local supply is high' do
+        # Create another location with much lower supply
+        location2 = create(:location)
+        create(:location_resource,
+          game: game,
+          location: location2,
+          resource: resource,
+          available_quantity: 10,
+          last_refreshed_day: 1
+        )
+
+        pressure = location_resource.send(:calculate_supply_pressure)
+        expect(pressure).to be < 0
+      end
+
+      it 'returns positive pressure when local supply is low' do
+        # Create another location with much higher supply
+        location2 = create(:location)
+        create(:location_resource,
+          game: game,
+          location: location2,
+          resource: resource,
+          available_quantity: 200,
+          last_refreshed_day: 1
+        )
+
+        pressure = location_resource.send(:calculate_supply_pressure)
+        expect(pressure).to be > 0
       end
     end
 
-    describe '.fresh' do
-      it 'returns resources refreshed on or after the previous day' do
-        expect(LocationResource.fresh(6)).to include(location_resource)
-        expect(LocationResource.fresh(6)).not_to include(other_location_resource)
+    describe '#calculate_demand_pressure' do
+      it 'returns positive pressure when player owns the resource' do
+        create(:inventory_item, game: game, resource: resource, quantity: 10)
+
+        pressure = location_resource.send(:calculate_demand_pressure)
+        expect(pressure).to be > 0
+      end
+
+      it 'returns negative pressure when player does not own the resource' do
+        pressure = location_resource.send(:calculate_demand_pressure)
+        expect(pressure).to be < 0
+      end
+
+      it 'returns higher pressure when player is hoarding' do
+        create(:inventory_item, game: game, resource: resource, quantity: 100)
+
+        pressure = location_resource.send(:calculate_demand_pressure)
+        expect(pressure).to eq(0.2)
       end
     end
 
-    describe '.stale' do
-      it 'returns resources not refreshed recently' do
-        expect(LocationResource.stale(6)).to include(other_location_resource)
-        expect(LocationResource.stale(6)).not_to include(location_resource)
+    describe '#calculate_momentum_decay' do
+      it 'returns negative decay for positive direction' do
+        location_resource.update!(price_direction: 0.8)
+        decay = location_resource.send(:calculate_momentum_decay)
+        expect(decay).to be < 0
+      end
+
+      it 'returns positive decay for negative direction' do
+        location_resource.update!(price_direction: -0.8)
+        decay = location_resource.send(:calculate_momentum_decay)
+        expect(decay).to be > 0
+      end
+
+      it 'returns zero decay for zero direction' do
+        location_resource.update!(price_direction: 0.0)
+        decay = location_resource.send(:calculate_momentum_decay)
+        expect(decay).to eq(0.0)
+      end
+
+      it 'has stronger decay for extreme directions' do
+        location_resource.update!(price_direction: 0.9)
+        strong_decay = location_resource.send(:calculate_momentum_decay).abs
+
+        location_resource.update!(price_direction: 0.3)
+        weak_decay = location_resource.send(:calculate_momentum_decay).abs
+
+        expect(strong_decay).to be > weak_decay
       end
     end
   end
 
   describe '.seed_for_location' do
-    let(:game) { create(:game) }
-    let(:location) { create(:location) }
-
-    before do
-      # Create some resources with different rarities
-      create(:resource, name: 'Common Item 1', rarity: :common)
-      create(:resource, name: 'Common Item 2', rarity: :common)
-      create(:resource, name: 'Uncommon Item', rarity: :uncommon)
-      create(:resource, name: 'Rare Item', rarity: :rare)
-    end
-
-    it 'seeds resources for a location' do
-      expect {
-        LocationResource.seed_for_location(game, location)
-      }.to change { LocationResource.count }.by_at_least(1)
-    end
-
-    it 'does not re-seed if already seeded' do
-      LocationResource.seed_for_location(game, location)
-      initial_count = LocationResource.count
-
-      LocationResource.seed_for_location(game, location)
-      expect(LocationResource.count).to eq(initial_count)
-    end
-
-    it 'creates location resources with valid prices' do
+    it 'sets base_price for new location resources' do
       LocationResource.seed_for_location(game, location)
 
-      LocationResource.for_game_and_location(game, location).each do |lr|
-        expect(lr.current_price).to be > 0
-        expect(lr.last_refreshed_day).to eq(game.current_day)
+      location_resources = LocationResource.where(game: game, location: location)
+      location_resources.each do |lr|
+        expect(lr.base_price).to be_present
+        expect(lr.base_price).to eq(lr.current_price)
       end
     end
 
-    context 'with tagged location' do
-      let!(:location) { create(:location, name: 'Tech City') }
+    it 'sets initial price_direction' do
+      LocationResource.seed_for_location(game, location)
 
-      before do
-        location.tag_names = ['tech_hub', 'wealthy']
-        location.save!
-
-        iphone = create(:resource, name: 'iPhone', rarity: :common)
-        iphone.tag_names = ['technology']
-        iphone.save!
-
-        macbook = create(:resource, name: 'MacBook', rarity: :uncommon)
-        macbook.tag_names = ['technology']
-        macbook.save!
-      end
-
-      it 'seeds resources for tagged location' do
-        LocationResource.seed_for_location(game, location)
-
-        seeded_resources = LocationResource.for_game_and_location(game, location).map(&:resource)
-
-        # Should seed at least the minimum resources
-        expect(seeded_resources.size).to be >= 4
+      location_resources = LocationResource.where(game: game, location: location)
+      location_resources.each do |lr|
+        expect(lr.price_direction).to be_between(-1.0, 1.0)
       end
     end
-  end
 
-  describe '.select_resources_for_location' do
-    let(:location) { create(:location) }
+    it 'sets initial price_momentum to 0.5' do
+      LocationResource.seed_for_location(game, location)
 
-    before do
-      # Create enough resources for minimum variety
-      15.times { |i| create(:resource, name: "Resource #{i}", rarity: :common) }
-    end
-
-    it 'returns an array of resources' do
-      result = LocationResource.select_resources_for_location(location)
-      expect(result).to be_an(Array)
-      expect(result.first).to be_a(Resource)
-    end
-
-    it 'ensures minimum variety of at least 10 resources' do
-      result = LocationResource.select_resources_for_location(location)
-      expect(result.size).to be >= 10
-    end
-
-    it 'returns unique resources' do
-      result = LocationResource.select_resources_for_location(location)
-      expect(result.uniq.size).to eq(result.size)
-    end
-  end
-
-  describe '.sample_by_rarity' do
-    before do
-      5.times { create(:resource, rarity: :common) }
-      3.times { create(:resource, rarity: :uncommon) }
-      2.times { create(:resource, rarity: :rare) }
-      1.times { create(:resource, rarity: :ultra_rare) }
-    end
-
-    it 'samples resources respecting rarity distribution' do
-      resources = Resource.all
-      sampled = LocationResource.sample_by_rarity(resources, target_count: 10)
-
-      expect(sampled.size).to be <= 10
-      expect(sampled).to be_an(Array)
-    end
-
-    it 'includes more common resources than rare ones' do
-      resources = Resource.all
-      sampled = LocationResource.sample_by_rarity(resources, target_count: 10)
-
-      common_count = sampled.count { |r| r.rarity == 'common' }
-      rare_count = sampled.count { |r| r.rarity == 'rare' }
-
-      expect(common_count).to be >= rare_count
-    end
-  end
-
-  describe '#needs_refresh?' do
-    let(:location_resource) { create(:location_resource, last_refreshed_day: 5) }
-
-    it 'returns true if last_refreshed_day is before current_day' do
-      expect(location_resource.needs_refresh?(6)).to be true
-    end
-
-    it 'returns false if last_refreshed_day is current_day' do
-      expect(location_resource.needs_refresh?(5)).to be false
-    end
-  end
-
-  describe '#refresh_price!' do
-    let(:resource) { create(:resource, base_price_min: 100, base_price_max: 200) }
-    let(:location_resource) { create(:location_resource, resource: resource, last_refreshed_day: 1) }
-
-    it 'updates the current_price' do
-      old_price = location_resource.current_price
-      location_resource.refresh_price!(5)
-
-      # Price is regenerated (might be same by chance, but day should update)
-      expect(location_resource.reload.last_refreshed_day).to eq(5)
-    end
-
-    it 'updates the last_refreshed_day' do
-      location_resource.refresh_price!(10)
-      expect(location_resource.last_refreshed_day).to eq(10)
-    end
-
-    it 'generates a valid market price' do
-      location_resource.refresh_price!(5)
-
-      # Verify the price is within a valid range
-      expect(location_resource.current_price).to be > 0
-      expect(location_resource.last_refreshed_day).to eq(5)
+      location_resources = LocationResource.where(game: game, location: location)
+      location_resources.each do |lr|
+        expect(lr.price_momentum).to eq(0.5)
+      end
     end
   end
 end

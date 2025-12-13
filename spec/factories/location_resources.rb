@@ -4,8 +4,11 @@
 #
 #  id                 :integer          not null, primary key
 #  available_quantity :integer          default(100), not null
+#  base_price         :decimal(10, 2)
 #  current_price      :decimal(10, 2)   not null
 #  last_refreshed_day :integer          not null
+#  price_direction    :decimal(3, 2)    default(0.0), not null
+#  price_momentum     :decimal(3, 2)    default(0.5), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -32,6 +35,9 @@ FactoryBot.define do
     association :location
     association :resource
     current_price { resource&.generate_market_price || 100.00 }
+    base_price { current_price }
     last_refreshed_day { game&.current_day || 1 }
+    price_direction { 0.0 }
+    price_momentum { 0.5 }
   end
 end

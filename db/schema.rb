@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_13_032834) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_13_034342) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -119,6 +119,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_032834) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "available_quantity", default: 100, null: false
+    t.decimal "price_direction", precision: 3, scale: 2, default: "0.0", null: false
+    t.decimal "price_momentum", precision: 3, scale: 2, default: "0.5", null: false
+    t.decimal "base_price", precision: 10, scale: 2
     t.index ["game_id", "location_id", "resource_id"], name: "index_location_resources_unique", unique: true
     t.index ["game_id", "location_id"], name: "index_location_resources_on_game_and_location"
     t.index ["game_id"], name: "index_location_resources_on_game_id"

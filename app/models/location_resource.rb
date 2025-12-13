@@ -4,8 +4,11 @@
 #
 #  id                 :integer          not null, primary key
 #  available_quantity :integer          default(100), not null
+#  base_price         :decimal(10, 2)
 #  current_price      :decimal(10, 2)   not null
 #  last_refreshed_day :integer          not null
+#  price_direction    :decimal(3, 2)    default(0.0), not null
+#  price_momentum     :decimal(3, 2)    default(0.5), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -59,8 +62,11 @@ class LocationResource < ApplicationRecord
           location: location,
           resource: resource,
           current_price: price,
+          base_price: price, # Set base price for oscillation
           available_quantity: quantity,
-          last_refreshed_day: game.current_day
+          last_refreshed_day: game.current_day,
+          price_direction: rand(-1.0..1.0).round(2), # Random initial direction
+          price_momentum: 0.5 # Start with medium momentum
         )
       end
     end
@@ -218,5 +224,175 @@ class LocationResource < ApplicationRecord
       current_price: resource.generate_market_price,
       last_refreshed_day: current_day
     )
+  end
+
+  # Updates price and quantity based on market dynamics
+  # Creates parabolic price movements that shift over time
+  def update_market_dynamics!(current_day)
+    return if last_refreshed_day >= current_day
+
+    # Calculate market forces
+    supply_pressure = calculate_supply_pressure
+    demand_pressure = calculate_demand_pressure
+    momentum_decay = calculate_momentum_decay
+
+    # Update price direction based on market forces
+    new_direction = update_price_direction(supply_pressure, demand_pressure, momentum_decay)
+
+    # Update momentum (gradually changes over time)
+    new_momentum = update_price_momentum(new_direction)
+
+    # Calculate new price based on direction and momentum
+    new_price = calculate_new_price(new_direction, new_momentum)
+
+    # Update quantity based on price movement
+    new_quantity = calculate_new_quantity(new_price)
+
+    # Apply updates
+    update!(
+      current_price: new_price,
+      price_direction: new_direction,
+      price_momentum: new_momentum,
+      available_quantity: new_quantity,
+      last_refreshed_day: current_day
+    )
+  end
+
+  private
+
+  # Calculate supply pressure across the entire game market
+  # Returns a value between -1.0 (oversupply) and 1.0 (undersupply)
+  def calculate_supply_pressure
+    # Get total available quantity across all locations for this resource
+    total_supply = LocationResource.where(game: game, resource: resource)
+                                   .sum(:available_quantity)
+
+    # Calculate average supply
+    location_count = LocationResource.where(game: game, resource: resource).count
+    return 0.0 if location_count == 0
+
+    avg_supply = total_supply.to_f / location_count
+
+    # Compare this location's supply to average
+    # High local supply = negative pressure (prices should fall)
+    # Low local supply = positive pressure (prices should rise)
+    if avg_supply == 0
+      0.0
+    else
+      supply_ratio = available_quantity.to_f / avg_supply
+      # Convert ratio to pressure: 2x average = -0.5, 0.5x average = +0.5
+      pressure = (1.0 - supply_ratio).clamp(-1.0, 1.0)
+      pressure * 0.3 # Reduce impact to 30%
+    end
+  end
+
+  # Calculate demand pressure based on player activity
+  # Returns a value between -1.0 (low demand) and 1.0 (high demand)
+  def calculate_demand_pressure
+    # Check if player owns this resource (indicates demand)
+    player_inventory = InventoryItem.where(game: game, resource: resource).sum(:quantity)
+
+    # If player is hoarding this resource, demand increases
+    if player_inventory > available_quantity
+      0.2 # Moderate positive pressure
+    elsif player_inventory > 0
+      0.1 # Slight positive pressure
+    else
+      -0.05 # Slight negative pressure (no interest)
+    end
+  end
+
+  # Calculate momentum decay - prices naturally slow down and reverse
+  # Returns a value that pulls price_direction back toward 0
+  def calculate_momentum_decay
+    # Momentum decay is stronger when direction is extreme
+    # This creates the turning point in the parabola
+    decay_strength = price_direction.abs * 0.15
+
+    # Decay pulls direction back toward zero
+    if price_direction > 0
+      -decay_strength
+    elsif price_direction < 0
+      decay_strength
+    else
+      0.0
+    end
+  end
+
+  # Update price direction based on all market forces
+  def update_price_direction(supply_pressure, demand_pressure, momentum_decay)
+    # Volatility affects how much random forces influence direction
+    volatility_factor = resource.price_volatility / 100.0
+    random_force = rand(-0.2..0.2) * volatility_factor
+
+    # Combine all forces
+    total_force = supply_pressure + demand_pressure + momentum_decay + random_force
+
+    # Apply force to current direction
+    new_direction = price_direction + total_force
+
+    # Clamp to valid range
+    new_direction.clamp(-1.0, 1.0).round(2)
+  end
+
+  # Update momentum - gradually changes based on direction consistency
+  def update_price_momentum(new_direction)
+    # If direction changed sign, reduce momentum (direction reversal)
+    if (price_direction * new_direction) < 0
+      new_momentum = [price_momentum - 0.2, 0.1].max
+    else
+      # Same direction = increase momentum slightly
+      new_momentum = [price_momentum + 0.05, 1.0].min
+    end
+
+    new_momentum.round(2)
+  end
+
+  # Calculate new price based on direction and momentum
+  def calculate_new_price(new_direction, new_momentum)
+    # Use base_price as the center point, fall back to current_price if not set
+    center_price = base_price || current_price
+
+    # Price volatility affects the range of movement
+    volatility_factor = resource.price_volatility / 100.0
+
+    # Maximum change per day is based on volatility and momentum
+    # For a 30-day game, we want 3-5 complete cycles for medium volatility
+    # So each cycle should be ~6-10 days
+    max_daily_change = center_price * volatility_factor * 0.15
+
+    # Actual change is direction * momentum * max_change
+    price_change = new_direction * new_momentum * max_daily_change
+
+    # Apply change to current price
+    new_price = current_price + price_change
+
+    # Ensure price stays within reasonable bounds (20% to 180% of base)
+    min_price = center_price * 0.2
+    max_price = center_price * 1.8
+
+    # Never go below $1
+    [new_price.clamp(min_price, max_price), 1.0].max.round(2)
+  end
+
+  # Calculate new quantity based on price movement
+  def calculate_new_quantity(new_price)
+    # When prices rise, supply tends to increase (producers produce more)
+    # When prices fall, supply tends to decrease (producers hold back)
+
+    price_change_ratio = if current_price > 0
+      (new_price - current_price) / current_price
+    else
+      0.0
+    end
+
+    # Quantity changes in same direction as price, but dampened
+    quantity_change = (available_quantity * price_change_ratio * 0.3).round
+
+    # Apply change
+    new_quantity = available_quantity + quantity_change
+
+    # Ensure minimum of 0
+    [new_quantity, 0].max
   end
 end
