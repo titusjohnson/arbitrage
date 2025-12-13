@@ -75,6 +75,7 @@ class Game < ApplicationRecord
   before_validation :set_restore_key, on: :create
   before_validation :set_started_at, on: :create
   before_validation :set_starting_location, on: :create
+  after_save :check_game_over_conditions
 
   # Scopes
   scope :active, -> { where(status: "active") }
@@ -114,7 +115,7 @@ class Game < ApplicationRecord
   end
 
   def can_continue?
-    active? && current_day <= 30 && health > 0
+    active? && current_day <= 30 && health > 0 && cash > 0
   end
 
   def advance_day!
@@ -269,5 +270,15 @@ class Game < ApplicationRecord
 
   def set_starting_location
     self.current_location ||= Location.order("RANDOM()").first
+  end
+
+  def check_game_over_conditions
+    return if finished?
+    return unless active?
+
+    # End game if cash reaches 0
+    if cash <= 0
+      end_game!
+    end
   end
 end

@@ -4,7 +4,7 @@ RSpec.describe TravelAction, type: :service do
   let(:location1) { create(:location, x: 0, y: 0) }
   let(:location2) { create(:location, x: 1, y: 0) } # Adjacent to location1
   let(:location3) { create(:location, x: 2, y: 2) } # Far from location1
-  let(:game) { create(:game, health: 10, current_day: 5, current_location: location1) }
+  let(:game) { create(:game, cash: 1000, current_day: 5, current_location: location1) }
 
   describe '#valid?' do
     context 'with valid params' do
@@ -42,25 +42,16 @@ RSpec.describe TravelAction, type: :service do
       end
     end
 
-    context 'with non-adjacent location' do
-      let(:action) { described_class.new(game, destination_id: location3.id) }
-
-      it 'is invalid' do
-        expect(action).not_to be_valid
-        expect(action.errors[:destination_id]).to include("is too far away (must be adjacent)")
-      end
-    end
-
-    context 'with insufficient health' do
+    context 'with insufficient cash' do
       let(:action) { described_class.new(game, destination_id: location2.id) }
 
       before do
-        game.update!(health: 0)
+        game.update!(cash: 50) # Not enough for $100 travel cost
       end
 
       it 'is invalid' do
         expect(action).not_to be_valid
-        expect(action.errors[:base]).to include("Game over: no health remaining")
+        expect(action.errors[:base]).to include("Not enough cash for this journey (need $100, have $50.0)")
       end
     end
 
@@ -88,10 +79,10 @@ RSpec.describe TravelAction, type: :service do
         }.to change { game.reload.current_location_id }.from(location1.id).to(location2.id)
       end
 
-      it 'reduces health' do
+      it 'reduces cash by $100' do
         expect {
           action.run
-        }.to change { game.reload.health }.by(-1)
+        }.to change { game.reload.cash }.by(-100)
       end
 
       it 'advances the day' do
@@ -106,35 +97,16 @@ RSpec.describe TravelAction, type: :service do
         }.to change { game.reload.locations_visited }.by(1)
       end
 
-      it 'returns success result' do
-        result = action.run
-
-        expect(result[:success]).to be true
-        expect(result[:location]).to eq(location2)
-        expect(result[:health_cost]).to eq(1)
-        expect(result[:day_advanced]).to be true
-      end
-    end
-
-    context 'when health drops to zero' do
-      before do
-        game.update!(health: 1)
-      end
-
-      it 'ends the game' do
-        expect {
-          action.run
-        }.to change { game.reload.status }.from('active').to('game_over')
+      it 'returns true' do
+        expect(action.run).to be true
       end
     end
 
     context 'with invalid action' do
       let(:action) { described_class.new(game, destination_id: nil) }
 
-      it 'raises an error' do
-        expect {
-          action.run
-        }.to raise_error("Cannot run invalid action")
+      it 'returns false' do
+        expect(action.run).to be false
       end
     end
   end

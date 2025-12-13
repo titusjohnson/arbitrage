@@ -11,13 +11,30 @@
       <tr>
         <% (0..5).each do |x| %>
           <% location = locations_by_coords[[x, y]] %>
-          <td class="location-cell <%= 'location-cell--empty' unless location %>">
+          <td class="location-cell <%= 'location-cell--empty' unless location %> <%= "location-cell--distance-#{current_game.current_location.distance_to(location)}" if location %>">
             <% if location %>
-              <div class="location-card">
+              <%
+                distance = current_game.current_location.distance_to(location)
+                cost = distance * 100
+              %>
+              <div class="location-card"
+                   data-controller="travel-confirmation"
+                   data-travel-confirmation-from-value="<%= current_game.current_location.name %>"
+                   data-travel-confirmation-to-value="<%= location.name %>"
+                   data-travel-confirmation-cost-value="<%= cost %>">
                 <h2 class="location-card__name"><%= location.name %></h2>
                 <% if location.description.present? %>
                   <p class="location-card__description"><%= location.description %></p>
                 <% end %>
+                <%= button_to "$#{cost}", travel_path,
+                    params: { location_id: location.id },
+                    method: :post,
+                    title: "Travel. Advances Day",
+                    class: "travel-button travel-button--distance-#{distance}",
+                    data: {
+                      distance: distance,
+                      action: "click->travel-confirmation#confirm"
+                    } %>
               </div>
             <% end %>
           </td>

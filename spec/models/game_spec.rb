@@ -204,22 +204,27 @@ RSpec.describe Game, type: :model do
 
   describe "#can_continue?" do
     it "returns true for active game with days remaining and health" do
-      game = build(:game, status: "active", current_day: 15, health: 5)
+      game = build(:game, status: "active", current_day: 15, health: 5, cash: 100)
       expect(game.can_continue?).to be true
     end
 
     it "returns false if game is not active" do
-      game = build(:game, status: "completed", current_day: 15, health: 5)
+      game = build(:game, status: "completed", current_day: 15, health: 5, cash: 100)
       expect(game.can_continue?).to be false
     end
 
     it "returns false if current_day exceeds 30" do
-      game = build(:game, status: "active", current_day: 31, health: 5)
+      game = build(:game, status: "active", current_day: 31, health: 5, cash: 100)
       expect(game.can_continue?).to be false
     end
 
     it "returns false if health is 0" do
-      game = build(:game, status: "active", current_day: 15, health: 0)
+      game = build(:game, status: "active", current_day: 15, health: 0, cash: 100)
+      expect(game.can_continue?).to be false
+    end
+
+    it "returns false if cash is 0" do
+      game = build(:game, status: "active", current_day: 15, health: 5, cash: 0)
       expect(game.can_continue?).to be false
     end
   end
@@ -314,6 +319,30 @@ RSpec.describe Game, type: :model do
       game.end_game!
 
       expect(game.completed_at).to eq(original_completed_at)
+    end
+  end
+
+  describe "game over conditions" do
+    describe "when cash reaches 0" do
+      it "automatically ends the game" do
+        game = create(:game, cash: 100, status: "active")
+
+        game.update!(cash: 0)
+
+        expect(game.reload.status).to eq("game_over")
+        expect(game.completed_at).to be_present
+        expect(game.final_score).to be_present
+      end
+
+      it "does not trigger for already finished games" do
+        game = create(:game, :completed, cash: 1000)
+        original_completed_at = game.completed_at
+
+        game.update!(cash: 0)
+
+        expect(game.reload.status).to eq("completed")
+        expect(game.completed_at).to eq(original_completed_at)
+      end
     end
   end
 

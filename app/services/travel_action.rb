@@ -2,9 +2,8 @@
 #
 # Usage:
 #   action = TravelAction.new(game, destination_id: 5)
-#   if action.valid?
-#     result = action.run
-#     # result is a hash with: { success: true, location: Location, health_cost: 1, day_advanced: true }
+#   if action.run
+#     # Travel successful
 #   else
 #     action.errors.full_messages
 #   end
@@ -15,7 +14,7 @@
 # Validations:
 #   - Destination must exist
 #   - Destination must be different from current location
-#   - Player must have enough health for the journey
+#   - Player must have enough cash for the journey
 #   - Destination must be reachable (adjacent locations only for now)
 #
 class TravelAction < GameAction
@@ -24,53 +23,33 @@ class TravelAction < GameAction
   validates :destination_id, presence: true
   validate :destination_must_exist
   validate :destination_must_be_different
-  validate :destination_must_be_reachable
-  validate :must_have_enough_health
+  validate :must_have_enough_cash
 
   def run
-    raise "Cannot run invalid action" unless valid?
-
-    result = {
-      success: false,
-      location: nil,
-      health_cost: 0,
-      day_advanced: false,
-      events_triggered: []
-    }
+    return false unless valid?
 
     ActiveRecord::Base.transaction do
-      # Calculate health cost based on distance
-      health_cost = calculate_health_cost
+      # Calculate travel cost based on distance
+      travel_cost = calculate_travel_cost
 
       # Update game state
       game.current_location_id = destination_id
-      game.health -= health_cost
+      game.cash -= travel_cost
       game.locations_visited += 1
 
       # Advance the day
-      day_advanced = game.advance_day!
-
-      # Check if game ended due to health loss
-      if game.health <= 0
-        game.end_game!
-      end
+      game.advance_day!
 
       game.save!
 
       # TODO: Trigger any location-based events or random encounters
-      # events_triggered = trigger_travel_events
-
-      result[:success] = true
-      result[:location] = destination
-      result[:health_cost] = health_cost
-      result[:day_advanced] = day_advanced
+      # trigger_travel_events
     end
 
-    result
+    true
   rescue ActiveRecord::RecordInvalid => e
     errors.add(:base, "Failed to save game: #{e.message}")
-    result[:success] = false
-    result
+    false
   end
 
   private
@@ -80,15 +59,13 @@ class TravelAction < GameAction
   end
 
   def current_location
-    @current_location ||= game.current_location_id ? Location.find_by(id: game.current_location_id) : nil
+    @current_location ||= game.current_location
   end
 
-  def calculate_health_cost
-    return 1 unless current_location && destination
-
-    # Base cost is 1 health per unit of distance
+  def calculate_travel_cost
+    # Cost is $100 per square traveled
     distance = current_location.distance_to(destination)
-    [distance, 1].max # Minimum 1 health even for adjacent moves
+    distance * 100
   end
 
   def destination_must_exist
@@ -100,33 +77,20 @@ class TravelAction < GameAction
   end
 
   def destination_must_be_different
-    return if destination.nil? || current_location.nil?
+    return if destination.nil?
 
     if destination.id == current_location.id
       errors.add(:destination_id, "must be different from current location")
     end
   end
 
-  def destination_must_be_reachable
-    return if destination.nil? || current_location.nil?
+  def must_have_enough_cash
+    return if destination.nil?
 
-    # For now, only allow travel to adjacent locations (Manhattan distance of 1)
-    # You can make this more flexible later (allow any location with higher health cost, etc.)
-    distance = current_location.distance_to(destination)
+    travel_cost = calculate_travel_cost
 
-    if distance > 1
-      errors.add(:destination_id, "is too far away (must be adjacent)")
-    end
-  end
-
-  def must_have_enough_health
-    return if destination.nil? || current_location.nil?
-    return if game.nil?
-
-    health_cost = calculate_health_cost
-
-    if game.health < health_cost
-      errors.add(:base, "Not enough health for this journey (need #{health_cost}, have #{game.health})")
+    if game.cash < travel_cost
+      errors.add(:base, "Not enough cash for this journey (need $#{travel_cost}, have $#{game.cash})")
     end
   end
 end
