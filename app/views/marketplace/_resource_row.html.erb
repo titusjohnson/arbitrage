@@ -3,14 +3,19 @@
   inventory_items = inventory_by_resource[resource.id] || []
   has_inventory = inventory_items.any?
 
+  # Calculate location-adjusted price
+  has_affinity = game_resource.has_affinity_with?(location)
+  display_price = game_resource.price_at_location(location)
+  base_current_price = game_resource.current_price
+
   if has_inventory
     # Calculate average purchase price and total quantity
     total_quantity = inventory_items.sum(&:quantity)
     total_cost = inventory_items.sum { |item| item.purchase_price * item.quantity }
     avg_purchase_price = total_cost / total_quantity
 
-    # Calculate profit/loss
-    current_value = game_resource.current_price * total_quantity
+    # Calculate profit/loss using location-adjusted price
+    current_value = display_price * total_quantity
     total_paid = total_cost
     profit_loss = current_value - total_paid
     profit_loss_pct = ((profit_loss / total_paid) * 100).round(1)
@@ -24,7 +29,7 @@
 
   if has_price_effect
     # Calculate what the price would be without events
-    base_price_without_events = (game_resource.current_price / event_effects[:price_multiplier]).round(2)
+    base_price_without_events = (display_price / event_effects[:price_multiplier]).round(2)
   end
 
   # Calculate price change from previous day
@@ -110,7 +115,7 @@
         ) %>
       </span>
       <div>
-        <strong>$<%= number_with_delimiter(game_resource.current_price, delimiter: ',') %></strong>
+        <strong>$<%= number_with_delimiter(display_price, delimiter: ',') %></strong>
         <span class="Text--<%= trend_color %>">
           <%= trend_icon %>
           <% if price_change != 0 %>
@@ -120,8 +125,21 @@
         </span>
       </div>
     </div>
-    <% if has_price_effect %>
+    <% if has_affinity %>
+      <%
+        affinity_diff = display_price - base_current_price
+        affinity_pct = ((affinity_diff / base_current_price) * 100).round(0) rescue 0
+      %>
+      <small class="<%= affinity_diff >= 0 ? 'Text--warning' : 'Text--info' %>" title="Local specialty: price swings exaggerated">
+        <% if affinity_diff >= 0 %>
+          ★ +<%= affinity_pct %>% local demand
+        <% else %>
+          ★ <%= affinity_pct %>% local surplus
+        <% end %>
+      </small>
       <br>
+    <% end %>
+    <% if has_price_effect %>
       <small class="<%= event_effects[:price_multiplier] > 1.0 ? 'Text--danger' : 'Text--success' %>">
         <% if event_effects[:price_multiplier] > 1.0 %>
           ↑ +<%= ((event_effects[:price_multiplier] - 1.0) * 100).round(0) %>% event price

@@ -236,6 +236,19 @@ class GameResource < ApplicationRecord
     price_histories.order(day: :desc).limit(days).pluck(:price).reverse.map(&:to_f)
   end
 
+  # Get the price adjusted for location affinity
+  # Resources matching a location's tags have exaggerated price swings
+  # @param location [Location] The location to check affinity against
+  # @return [BigDecimal] The adjusted price
+  def price_at_location(location)
+    Location.price_with_affinity(self, location)
+  end
+
+  # Check if this resource has affinity with a location
+  def has_affinity_with?(location)
+    Location.resource_has_affinity?(resource, location)
+  end
+
   private
 
   def calculate_supply_pressure

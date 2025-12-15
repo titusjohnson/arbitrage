@@ -1,7 +1,16 @@
 # Defines which resource tags have affinity with which location tags
 # Resources with matching tags are considered "local specialties" for that location
+#
+# Location affinity affects prices: resources matching a location's tags have
+# their price changes exaggerated by AFFINITY_EXAGGERATION_FACTOR (50%).
+# If a resource is going up 10%, it goes up 15% at an affiliated location.
+# If it's going down 10%, it goes down 15%.
 module LocationAffinity
   extend ActiveSupport::Concern
+
+  # How much to exaggerate price changes for location-affiliated resources
+  # 0.5 = 50% more of whatever the price change is
+  AFFINITY_EXAGGERATION_FACTOR = 0.5
 
   # Maps location tags to the resource tags they have affinity with
   # Based on docs/LOCATION_TAGS.md
@@ -60,6 +69,31 @@ module LocationAffinity
       return Resource.none if affinity_tags.empty?
 
       Resource.tagged_with(names: affinity_tags, match: :any)
+    end
+
+    # Calculate price with location affinity applied
+    # Exaggerates price changes for resources that match the location's tags
+    #
+    # @param game_resource [GameResource] The game resource to price
+    # @param location [Location] The current location
+    # @return [BigDecimal] The adjusted price
+    def price_with_affinity(game_resource, location)
+      base_price = game_resource.base_price.to_f
+      current_price = game_resource.current_price.to_f
+
+      return current_price unless resource_has_affinity?(game_resource.resource, location)
+
+      # Calculate how much the price has changed from base
+      price_change = current_price - base_price
+
+      # Exaggerate the change by the affinity factor
+      exaggerated_change = price_change * (1.0 + AFFINITY_EXAGGERATION_FACTOR)
+
+      # Apply the exaggerated change to base price
+      adjusted_price = base_price + exaggerated_change
+
+      # Respect price floor (never go below 1.0)
+      [adjusted_price, 1.0].max.round(2)
     end
   end
 end

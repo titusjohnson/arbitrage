@@ -11,7 +11,7 @@ exceptional_events = [
     rarity: "exceptional",
     duration: 7,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["investment", "luxury_fashion", "collectible"], match: "any", multiplier: 0.3, description: "Nobody wants your luxury bags when they can't afford bread" },
@@ -37,7 +37,7 @@ exceptional_events = [
     rarity: "exceptional",
     duration: 6,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "perishable"], match: "all", multiplier: 4.0, description: "Food prices skyrocket as supply vanishes" },
@@ -63,7 +63,7 @@ exceptional_events = [
     rarity: "exceptional",
     duration: 5,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 0.6, description: "Tech sector in crisis mode" },
@@ -86,7 +86,7 @@ exceptional_events = [
     rarity: "exceptional",
     duration: 6,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "collectible"], match: "any", multiplier: 2.5, description: "Surviving pieces become instant rarities" },
@@ -111,7 +111,7 @@ exceptional_events = [
     rarity: "exceptional",
     duration: 7,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["alcohol"], match: "any", multiplier: 5.0, description: "Black market prices are insane" },
@@ -144,7 +144,7 @@ ultra_rare_events = [
     rarity: "ultra_rare",
     duration: 5,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 0.4, description: "Tech liquidation sales everywhere" },
@@ -168,7 +168,7 @@ ultra_rare_events = [
     rarity: "ultra_rare",
     duration: 6,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["asian_origin"], match: "any", multiplier: 0.5, description: "Asian imports flooding markets at discount prices" },
@@ -192,7 +192,7 @@ ultra_rare_events = [
     rarity: "ultra_rare",
     duration: 5,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["european_origin"], match: "any", multiplier: 2.2, description: "European goods scarce and expensive" },
@@ -216,7 +216,7 @@ ultra_rare_events = [
     rarity: "ultra_rare",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "collectible"], match: "any", multiplier: 1.6, description: "Collectibles values surge on scarcity fears" },
@@ -240,7 +240,7 @@ ultra_rare_events = [
     rarity: "ultra_rare",
     duration: 6,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 1.6, description: "Everyone panic-buying tech for work-from-home" },
@@ -267,7 +267,7 @@ rare_events = [
     rarity: "rare",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible"], match: "any", multiplier: 0.6, description: "Collectibles credibility shattered" }
@@ -290,7 +290,7 @@ rare_events = [
     rarity: "rare",
     duration: 5,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "consumable"], match: "all", multiplier: 3.0, description: "Coffee prices going absolutely insane" }
@@ -313,7 +313,7 @@ rare_events = [
     rarity: "rare",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["alcohol"], match: "any", multiplier: 0.7, description: "Wine market credibility tanking" },
@@ -337,7 +337,7 @@ rare_events = [
     rarity: "rare",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["precious_metal"], match: "any", multiplier: 1.8, description: "Supply crunch driving prices up" }
@@ -360,7 +360,7 @@ rare_events = [
     rarity: "rare",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["luxury_fashion"], match: "any", multiplier: 2.0, description: "Luxury fashion in peak demand" },
@@ -381,7 +381,7 @@ rare_events = [
     rarity: "rare",
     duration: 5,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["asian_origin"], match: "any", multiplier: 2.2, description: "Asian imports stuck at sea" },
@@ -405,7 +405,7 @@ rare_events = [
     rarity: "rare",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["gemstone"], match: "any", multiplier: 0.6, description: "Diamond bubble bursting spectacularly" },
@@ -426,7 +426,7 @@ rare_events = [
     rarity: "rare",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "perishable"], match: "all", multiplier: 2.5, description: "Premium perishables in extreme demand" },
@@ -447,7 +447,7 @@ rare_events = [
     rarity: "rare",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["precious_metal", "luxury_fashion"], match: "any", multiplier: 1.7, description: "Winners buying everything expensive" },
@@ -468,7 +468,7 @@ rare_events = [
     rarity: "rare",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["luxury_fashion"], match: "any", multiplier: 2.0, description: "Limited edition fashion items spiking" },
@@ -494,7 +494,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["timepiece"], match: "any", multiplier: 1.6, description: "Watch collectors in bidding wars" },
@@ -511,7 +511,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "consumable"], match: "all", multiplier: 0.7, description: "Premium spices temporarily cheaper" }
@@ -530,7 +530,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible"], match: "any", multiplier: 1.8, description: "Collectibles markets going ballistic" }
@@ -550,7 +550,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["alcohol"], match: "any", multiplier: 1.7, description: "Aged spirits market going crazy" },
@@ -567,7 +567,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 1.4, description: "Tech hype driving prices up" }
@@ -587,7 +587,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["gemstone"], match: "any", multiplier: 0.8, description: "New supply pushing prices down" }
@@ -606,7 +606,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["luxury_fashion", "european_origin"], match: "any", multiplier: 1.6, description: "Import duties driving up foreign luxury goods" },
@@ -627,7 +627,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "collectible"], match: "any", multiplier: 1.5, description: "Antiques suddenly trendy again" }
@@ -646,7 +646,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "consumable"], match: "all", multiplier: 1.4, description: "Premium chocolate in high demand" },
@@ -663,7 +663,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["precious_metal"], match: "any", multiplier: 1.5, description: "Gold fever driving prices up" }
@@ -679,7 +679,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "artisan"], match: "any", multiplier: 1.6, description: "Cultural pieces in demand at gala" },
@@ -700,7 +700,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 0.7, description: "Tech sector losing consumer confidence" }
@@ -719,7 +719,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 4,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "perishable"], match: "all", multiplier: 2.5, description: "Luxury seafood prices skyrocketing" }
@@ -738,7 +738,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["consumable"], match: "any", multiplier: 1.5, description: "Luxury consumables trending hard" }
@@ -758,7 +758,7 @@ uncommon_events = [
     rarity: "uncommon",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible", "compact"], match: "all", multiplier: 1.6, description: "Small collectibles highly sought after" },
@@ -780,7 +780,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "artisan"], match: "any", multiplier: 1.2, description: "Fresh artisan foods slightly pricier" }
@@ -796,7 +796,7 @@ common_events = [
     rarity: "common",
     duration: 1,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["luxury_fashion"], match: "any", multiplier: 0.85, description: "Retail discounts to drive foot traffic" }
@@ -812,7 +812,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "consumable"], match: "all", multiplier: 1.15, description: "Premium coffee beans in demand" }
@@ -828,7 +828,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible", "antique"], match: "any", multiplier: 0.9, description: "Market flooded with random old stuff" }
@@ -847,7 +847,7 @@ common_events = [
     rarity: "common",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["gemstone", "precious_metal"], match: "any", multiplier: 1.1, description: "'Anniversary pricing' (aka regular prices)" }
@@ -863,7 +863,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "collectible"], match: "any", multiplier: 0.95, description: "Flea market bargaining in full effect" }
@@ -879,7 +879,7 @@ common_events = [
     rarity: "common",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["perishable"], match: "any", multiplier: 1.3, description: "Heat affecting perishable goods" }
@@ -898,7 +898,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["antique", "collectible"], match: "all", multiplier: 1.25, description: "Rare books getting premium attention" }
@@ -914,7 +914,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["alcohol"], match: "any", multiplier: 1.2, description: "Wine tourism driving up prices" }
@@ -930,7 +930,7 @@ common_events = [
     rarity: "common",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["technology"], match: "any", multiplier: 0.8, description: "Last season's tech on clearance" }
@@ -946,7 +946,7 @@ common_events = [
     rarity: "common",
     duration: 3,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["luxury_fashion", "consumable"], match: "any", multiplier: 1.3, description: "Holiday markup in full swing" }
@@ -962,7 +962,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "perishable"], match: "all", multiplier: 0.9, description: "Abundant harvest lowering prices" }
@@ -981,7 +981,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible", "compact"], match: "all", multiplier: 1.3, description: "Coin collecting enthusiasm up" }
@@ -997,7 +997,7 @@ common_events = [
     rarity: "common",
     duration: 1,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["collectible"], match: "any", multiplier: 0.85, description: "Yard sale bargains everywhere" }
@@ -1016,7 +1016,7 @@ common_events = [
     rarity: "common",
     duration: 2,
     day_start: nil,
-    active: false,
+    active: true,
     resource_effects: {
       price_modifiers: [
         { tags: ["food", "consumable"], match: "all", multiplier: 1.2, description: "Premium tea getting attention" },

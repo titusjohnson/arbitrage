@@ -81,7 +81,8 @@ class BuyAction < GameAction
   end
 
   def price_per_unit
-    @price_per_unit ||= game_resource&.current_price
+    return nil unless game_resource
+    @price_per_unit ||= game_resource.price_at_location(game.current_location)
   end
 
   def total_cost
