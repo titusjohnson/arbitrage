@@ -27,14 +27,18 @@
       <div class="header__container">
         <div class="header__brand">
           <%= link_to "Resources", root_path, class: "header__brand-link" %>
-          <div class="header__location">
-            <%= current_game.current_location.name %>
-          </div>
+          <% if current_game %>
+            <div class="header__location">
+              <%= current_game.current_location.name %>
+            </div>
+          <% end %>
         </div>
-        <%= render "shared/navbar" %>
-        <nav class="header__nav">
-          <%= render "shared/game_stats", game: current_game %>
-        </nav>
+        <% if current_game %>
+          <%= render "shared/navbar" %>
+          <nav class="header__nav">
+            <%= render "shared/game_stats", game: current_game %>
+          </nav>
+        <% end %>
       </div>
     </header>
 

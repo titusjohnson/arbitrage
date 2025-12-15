@@ -189,6 +189,17 @@ bundle exec rspec --format documentation
 - **Rubocop**: Code style linting (`bin/rubocop`)
 - **Annotaterb**: Schema annotations (`bundle exec annotaterb models`)
 
+### After Running Migrations
+
+After running `bin/rails db:migrate`, always run these follow-up commands:
+```bash
+# Update schema annotations in model files
+bundle exec annotaterb models
+
+# Replant seed data to reflect schema changes
+bin/rails db:seed:replant
+```
+
 ## Documentation
 
 The `docs/` folder contains detailed design documents for different aspects of the game:

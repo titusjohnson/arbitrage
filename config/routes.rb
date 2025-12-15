@@ -51,6 +51,11 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "marketplace#index"
 
+  # Game management
+  get "game/new", to: "games#new", as: :new_game
+  post "game", to: "games#create", as: :games
+  delete "game", to: "games#abandon", as: :abandon_game
+
   # Marketplace
   get "marketplace", to: "marketplace#index"
   post "marketplace/buy", to: "marketplace#buy", as: :marketplace_buy

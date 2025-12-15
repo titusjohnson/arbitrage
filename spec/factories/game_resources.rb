@@ -9,6 +9,8 @@
 #  last_refreshed_day :integer          not null
 #  price_direction    :decimal(3, 2)    default(0.0), not null
 #  price_momentum     :decimal(3, 2)    default(0.5), not null
+#  sine_phase_offset  :decimal(5, 4)    default(0.0), not null
+#  trend_phase_offset :decimal(5, 4)    default(0.0), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -16,7 +18,9 @@
 #
 # Indexes
 #
-#  index_game_resources_unique  (game_id,resource_id) UNIQUE
+#  index_game_resources_on_game_id      (game_id)
+#  index_game_resources_on_resource_id  (resource_id)
+#  index_game_resources_unique          (game_id,resource_id) UNIQUE
 #
 # Foreign Keys
 #
@@ -33,6 +37,8 @@ FactoryBot.define do
     last_refreshed_day { game&.current_day || 1 }
     price_direction { 0.0 }
     price_momentum { 0.5 }
+    sine_phase_offset { rand(0.0..(2.0 * Math::PI)).round(4) }
+    trend_phase_offset { rand(0.0..(2.0 * Math::PI)).round(4) }
 
     trait :with_history do
       after(:create) do |game_resource|

@@ -60,14 +60,14 @@ RSpec.describe GameEvent, type: :model do
         expect(game_event).to be_valid
       end
 
-      it "rejects day_triggered below 1" do
-        game_event = build(:game_event, day_triggered: 0)
-        expect(game_event).not_to be_valid
+      it "accepts negative day_triggered for historical events" do
+        game_event = build(:game_event, day_triggered: -15)
+        expect(game_event).to be_valid
       end
 
-      it "rejects day_triggered above 30" do
-        game_event = build(:game_event, day_triggered: 31)
-        expect(game_event).not_to be_valid
+      it "accepts day_triggered above 30 for longer games" do
+        game_event = build(:game_event, day_triggered: 100)
+        expect(game_event).to be_valid
       end
 
       it "rejects non-integer day_triggered" do

@@ -8,7 +8,9 @@
 #  cash                 :decimal(10, 2)   default(5000.0), not null
 #  completed_at         :datetime
 #  current_day          :integer          default(1), not null
+#  day_target           :integer          default(30), not null
 #  debt                 :decimal(10, 2)   default(0.0), not null
+#  difficulty           :string           default("street_peddler"), not null
 #  final_score          :integer
 #  health               :integer          default(10), not null
 #  inventory_capacity   :integer          default(100), not null
@@ -19,6 +21,7 @@
 #  status               :string           default("active"), not null
 #  total_purchases      :integer          default(0), not null
 #  total_sales          :integer          default(0), not null
+#  wealth_target        :decimal(15, 2)   default(25000.0), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  active_game_event_id :integer
@@ -27,6 +30,7 @@
 # Indexes
 #
 #  index_games_on_active_game_event_id  (active_game_event_id)
+#  index_games_on_difficulty            (difficulty)
 #  index_games_on_player_id_and_status  (status)
 #  index_games_on_restore_key           (restore_key) UNIQUE
 #  index_games_on_started_at            (started_at)
@@ -37,9 +41,20 @@
 #  active_game_event_id  (active_game_event_id => game_events.id)
 #
 class Game < ApplicationRecord
+  include DifficultyConfiguration
+
+  # Enums
+  enum :difficulty, {
+    street_peddler: "street_peddler",
+    flea_market_flipper: "flea_market_flipper",
+    antique_dealer: "antique_dealer",
+    commodities_broker: "commodities_broker",
+    tycoon: "tycoon"
+  }
+
   # Associations
-  belongs_to :current_location, class_name: 'Location'
-  belongs_to :active_game_event, class_name: 'GameEvent', optional: true
+  belongs_to :current_location, class_name: "Location"
+  belongs_to :active_game_event, class_name: "GameEvent", optional: true
   has_many :game_events, dependent: :destroy
   has_many :events, through: :game_events
   has_many :inventory_items, dependent: :destroy
@@ -51,10 +66,14 @@ class Game < ApplicationRecord
   # Validations
   validates :restore_key, presence: true, uniqueness: true
 
+  validates :difficulty, presence: true
+  validates :wealth_target, presence: true, numericality: { greater_than: 0 }
+  validates :day_target, presence: true, numericality: { greater_than: 0, only_integer: true }
+
   validates :current_day, presence: true, numericality: {
     only_integer: true,
     greater_than_or_equal_to: 1,
-    less_than_or_equal_to: 30
+    less_than_or_equal_to: ->(game) { game.day_target }
   }
 
   validates :cash, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -85,8 +104,8 @@ class Game < ApplicationRecord
   before_validation :set_restore_key, on: :create
   before_validation :set_started_at, on: :create
   before_validation :set_starting_location, on: :create
+  before_validation :set_difficulty_defaults, on: :create
   after_create :log_game_start
-  after_create :seed_game_resources
   after_save :check_game_over_conditions
 
   # Scopes
@@ -95,6 +114,25 @@ class Game < ApplicationRecord
   scope :game_over, -> { where(status: "game_over") }
   scope :finished, -> { where(status: [ "completed", "game_over" ]) }
   scope :recent, -> { order(started_at: :desc) }
+
+  # Class Methods
+
+  def self.create_with_difficulty!(difficulty_key)
+    config = difficulty_config(difficulty_key)
+    raise ArgumentError, "Unknown difficulty: #{difficulty_key}" unless config
+
+    game = create!(
+      difficulty: difficulty_key,
+      cash: config[:starting_cash],
+      wealth_target: config[:wealth_target],
+      day_target: config[:day_target]
+    )
+
+    # Run historical simulation to seed resources and price history
+    HistoricalSimulationService.new(game).call
+
+    game
+  end
 
   # Instance Methods
 
@@ -107,7 +145,23 @@ class Game < ApplicationRecord
   end
 
   def days_remaining
-    30 - current_day
+    day_target - current_day
+  end
+
+  def victory?
+    net_worth >= wealth_target
+  end
+
+  def time_expired?
+    current_day > day_target
+  end
+
+  def difficulty_display_name
+    self.class.difficulty_config(difficulty)&.dig(:display_name) || difficulty.titleize
+  end
+
+  def difficulty_description
+    self.class.difficulty_config(difficulty)&.dig(:description) || ""
   end
 
   def game_over?
@@ -127,7 +181,7 @@ class Game < ApplicationRecord
   end
 
   def can_continue?
-    active? && current_day <= 30 && health > 0 && cash > 0
+    active? && current_day <= day_target && health > 0 && cash > 0
   end
 
   def advance_day!
@@ -136,7 +190,7 @@ class Game < ApplicationRecord
     increment!(:current_day)
 
     # Check if game should end
-    if current_day >= 30
+    if current_day >= day_target
       complete_game!
     end
 
@@ -170,7 +224,7 @@ class Game < ApplicationRecord
   # Inventory Management
 
   def current_inventory_size
-    inventory_items.joins(:resource).sum('resources.inventory_size * inventory_items.quantity')
+    inventory_items.joins(:resource).sum("resources.inventory_size * inventory_items.quantity")
   end
 
   def available_inventory_space
@@ -280,14 +334,14 @@ class Game < ApplicationRecord
   end
 
   def recently_visited_locations(days_back = 10)
-    cutoff_day = [current_day - days_back, 1].max
+    cutoff_day = [ current_day - days_back, 1 ].max
 
     Location.joins(:location_visits)
             .where(location_visits: { game_id: id })
-            .where('location_visits.visited_on >= ? AND location_visits.visited_on < ?', cutoff_day, current_day)
+            .where("location_visits.visited_on >= ? AND location_visits.visited_on < ?", cutoff_day, current_day)
             .where.not(id: current_location_id)
             .distinct
-            .order('location_visits.visited_on DESC')
+            .order("location_visits.visited_on DESC")
   end
 
   private
@@ -302,6 +356,16 @@ class Game < ApplicationRecord
 
   def set_starting_location
     self.current_location ||= Location.order("RANDOM()").first
+  end
+
+  def set_difficulty_defaults
+    self.difficulty ||= :street_peddler
+    config = self.class.difficulty_config(difficulty)
+    return unless config
+
+    self.cash ||= config[:starting_cash]
+    self.wealth_target ||= config[:wealth_target]
+    self.day_target ||= config[:day_target]
   end
 
   def log_game_start

@@ -9,6 +9,8 @@
 #  last_refreshed_day :integer          not null
 #  price_direction    :decimal(3, 2)    default(0.0), not null
 #  price_momentum     :decimal(3, 2)    default(0.5), not null
+#  sine_phase_offset  :decimal(5, 4)    default(0.0), not null
+#  trend_phase_offset :decimal(5, 4)    default(0.0), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -16,7 +18,9 @@
 #
 # Indexes
 #
-#  index_game_resources_unique  (game_id,resource_id) UNIQUE
+#  index_game_resources_on_game_id      (game_id)
+#  index_game_resources_on_resource_id  (resource_id)
+#  index_game_resources_unique          (game_id,resource_id) UNIQUE
 #
 # Foreign Keys
 #
@@ -172,18 +176,23 @@ RSpec.describe GameResource, type: :model do
       expect(history.quantity).to eq(game_resource.available_quantity)
     end
 
-    context 'parabolic price movement' do
-      it 'eventually reverses direction when price moves in one direction' do
-        game_resource.update!(price_direction: 1.0, price_momentum: 1.0)
-
-        directions = []
-        30.times do |i|
+    context 'sinusoidal price movement' do
+      it 'oscillates around base price over the sine period' do
+        prices = []
+        15.times do |i|
           game_resource.update_market_dynamics!(i + 2)
-          directions << game_resource.price_direction
+          prices << game_resource.current_price.to_f
         end
 
-        # Should see some negative directions eventually (momentum decay causes reversal)
-        expect(directions).to include(be < 0)
+        # Prices should oscillate - we should see both prices above and below
+        # the midpoint of the range over a full cycle (10 days + buffer)
+        avg_price = prices.sum / prices.length
+        above_avg = prices.count { |p| p > avg_price }
+        below_avg = prices.count { |p| p < avg_price }
+
+        # Both above and below average prices should exist
+        expect(above_avg).to be > 0
+        expect(below_avg).to be > 0
       end
     end
 
@@ -229,7 +238,9 @@ RSpec.describe GameResource, type: :model do
         )
       end
 
-      it 'has smaller price swings' do
+      it 'has smaller price swings than high volatility resources' do
+        # Low volatility resources still have trend wave movement (±25%)
+        # but less random variation on top
         prices = [game_resource.current_price]
 
         10.times do |i|
@@ -238,7 +249,9 @@ RSpec.describe GameResource, type: :model do
         end
 
         price_range = prices.max - prices.min
-        expect(price_range).to be < 50 # Limited movement for stable items
+        # With trend wave (±25%) and sine wave (±10%), expect up to ~70% swing
+        # but low volatility means minimal random variation on top
+        expect(price_range).to be < 80
       end
     end
   end
@@ -286,16 +299,15 @@ RSpec.describe GameResource, type: :model do
     end
 
     it 'creates game resources for all resources' do
-      new_game = build(:game)
-      new_game.save!
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game)
 
-      # Game's after_create callback calls seed_for_game
       expect(new_game.game_resources.count).to eq(Resource.count)
     end
 
     it 'sets base_price for new game resources' do
-      new_game = build(:game)
-      new_game.save!
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game)
 
       new_game.game_resources.each do |gr|
         expect(gr.base_price).to be_present
@@ -304,8 +316,8 @@ RSpec.describe GameResource, type: :model do
     end
 
     it 'sets initial price_direction between -1 and 1' do
-      new_game = build(:game)
-      new_game.save!
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game)
 
       new_game.game_resources.each do |gr|
         expect(gr.price_direction).to be_between(-1.0, 1.0)
@@ -313,20 +325,29 @@ RSpec.describe GameResource, type: :model do
     end
 
     it 'sets initial price_momentum to 0.5' do
-      new_game = build(:game)
-      new_game.save!
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game)
 
       new_game.game_resources.each do |gr|
         expect(gr.price_momentum).to eq(0.5)
       end
     end
 
-    it 'generates price history for each game resource' do
-      new_game = build(:game)
-      new_game.save!
+    it 'generates price history for each game resource when generate_history is true' do
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game, generate_history: true)
 
       new_game.game_resources.each do |gr|
         expect(gr.price_histories.count).to eq(30)
+      end
+    end
+
+    it 'does not generate price history when generate_history is false' do
+      new_game = create(:game)
+      GameResource.seed_for_game(new_game, generate_history: false)
+
+      new_game.game_resources.each do |gr|
+        expect(gr.price_histories.count).to eq(0)
       end
     end
   end

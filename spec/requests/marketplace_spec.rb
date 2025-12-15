@@ -7,8 +7,7 @@ RSpec.describe "Marketplaces", type: :request do
   let!(:game_resource) { create(:game_resource, game: game, resource: resource, current_price: 50.0) }
 
   before do
-    # Set up session with game
-    allow_any_instance_of(MarketplaceController).to receive(:current_game).and_return(game)
+    sign_in_with_game(game)
   end
 
   describe "GET /marketplace" do

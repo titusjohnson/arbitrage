@@ -1,0 +1,43 @@
+<div class="difficulty-selection" data-controller="difficulty-select">
+  <h1 class="difficulty-selection__title">Choose Your Difficulty</h1>
+  <p class="difficulty-selection__intro">Select how challenging you want your trading journey to be.</p>
+
+  <div class="difficulty-selection__grid">
+    <% @difficulties.each do |key, config| %>
+      <%= button_to games_path,
+            method: :post,
+            params: { difficulty: key },
+            class: "difficulty-card difficulty-card--#{key}",
+            data: {
+              difficulty_select_target: "card",
+              action: "click->difficulty-select#select"
+            } do %>
+        <div class="difficulty-card__header">
+          <h2 class="difficulty-card__name"><%= config[:display_name] %></h2>
+          <span class="difficulty-card__level">Level <%= config[:order] %></span>
+        </div>
+
+        <p class="difficulty-card__description"><%= config[:description] %></p>
+
+        <div class="difficulty-card__stats">
+          <div class="difficulty-card__stat">
+            <span class="difficulty-card__stat-label">Starting Cash</span>
+            <span class="difficulty-card__stat-value"><%= number_to_currency(config[:starting_cash], precision: 0) %></span>
+          </div>
+          <div class="difficulty-card__stat">
+            <span class="difficulty-card__stat-label">Wealth Target</span>
+            <span class="difficulty-card__stat-value"><%= number_to_currency(config[:wealth_target], precision: 0) %></span>
+          </div>
+          <div class="difficulty-card__stat">
+            <span class="difficulty-card__stat-label">Time Limit</span>
+            <span class="difficulty-card__stat-value"><%= pluralize(config[:day_target], 'day') %></span>
+          </div>
+        </div>
+
+        <div class="difficulty-card__multiplier">
+          <%= number_to_currency(config[:wealth_target], precision: 0) %> / <%= number_to_currency(config[:starting_cash], precision: 0) %> = <strong><%= (config[:wealth_target].to_f / config[:starting_cash]).round(0) %>x</strong> return required
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

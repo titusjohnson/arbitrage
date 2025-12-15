@@ -1,20 +1,19 @@
 require 'rails_helper'
 
 RSpec.describe "Inventories", type: :request do
-  # Ensure at least one location exists for game creation
-  before(:each) do
-    create(:location) unless Location.exists?
+  let(:game) { create(:game) }
+
+  before do
+    sign_in_with_game(game)
   end
 
-  describe "GET /inventoryinventory" do
+  describe "GET /inventory" do
     it "returns http success" do
       get "/inventory"
       expect(response).to have_http_status(:success)
     end
 
     it "displays inventory items when they exist" do
-      get "/inventory"
-      game = Game.find_by(restore_key: session[:game_restore_key])
       resource = create(:resource, name: "Gold Bar")
       create(:inventory_item, game: game, resource: resource, quantity: 5, purchase_price: 100.0)
 
@@ -31,8 +30,6 @@ RSpec.describe "Inventories", type: :request do
     end
 
     it "displays inventory statistics" do
-      get "/inventory"
-      game = Game.find_by(restore_key: session[:game_restore_key])
       resource = create(:resource, inventory_size: 2)
       create(:inventory_item, game: game, resource: resource, quantity: 10, purchase_price: 50.0)
 

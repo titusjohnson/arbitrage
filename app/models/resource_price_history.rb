@@ -12,8 +12,9 @@
 #
 # Indexes
 #
-#  index_price_histories_for_analysis  (game_resource_id,day,price)
-#  index_price_histories_unique        (game_resource_id,day) UNIQUE
+#  index_price_histories_for_analysis                  (game_resource_id,day,price)
+#  index_price_histories_unique                        (game_resource_id,day) UNIQUE
+#  index_resource_price_histories_on_game_resource_id  (game_resource_id)
 #
 # Foreign Keys
 #

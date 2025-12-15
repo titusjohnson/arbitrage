@@ -9,6 +9,8 @@
 #  last_refreshed_day :integer          not null
 #  price_direction    :decimal(3, 2)    default(0.0), not null
 #  price_momentum     :decimal(3, 2)    default(0.5), not null
+#  sine_phase_offset  :decimal(5, 4)    default(0.0), not null
+#  trend_phase_offset :decimal(5, 4)    default(0.0), not null
 #  created_at         :datetime         not null
 #  updated_at         :datetime         not null
 #  game_id            :integer          not null
@@ -16,7 +18,9 @@
 #
 # Indexes
 #
-#  index_game_resources_unique  (game_id,resource_id) UNIQUE
+#  index_game_resources_on_game_id      (game_id)
+#  index_game_resources_on_resource_id  (resource_id)
+#  index_game_resources_unique          (game_id,resource_id) UNIQUE
 #
 # Foreign Keys
 #
@@ -29,10 +33,22 @@ class GameResource < ApplicationRecord
   belongs_to :resource
   has_many :price_histories, class_name: 'ResourcePriceHistory', dependent: :destroy
 
+  # Price dynamics constants
+  # Short-term oscillation (ripples)
+  SINE_PERIOD_DAYS = 10       # Full sine wave cycle in days
+  SINE_AMPLITUDE = 0.10       # ±10% oscillation (20% total swing)
+
+  # Long-term trend (waves)
+  TREND_PERIOD_DAYS = 20      # Full trend cycle in days
+  TREND_AMPLITUDE = 0.25      # ±25% oscillation (50% total swing)
+
+  PRICE_FLOOR_MULTIPLIER = 0.2
+  PRICE_CEILING_MULTIPLIER = 2.5
+
   # Validations
   validates :current_price, presence: true, numericality: { greater_than: 0 }
   validates :base_price, presence: true, numericality: { greater_than: 0 }
-  validates :last_refreshed_day, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 1 }
+  validates :last_refreshed_day, presence: true, numericality: { only_integer: true }
   validates :resource_id, uniqueness: { scope: :game_id, message: "already exists for this game" }
 
   # Scopes
@@ -41,7 +57,10 @@ class GameResource < ApplicationRecord
   scope :stale, ->(current_day) { where("last_refreshed_day < ?", current_day - 1) }
 
   # Seed all resources for a new game
-  def self.seed_for_game(game)
+  # Note: For new games, use HistoricalSimulationService instead which handles
+  # seeding with proper historical simulation. This method is kept for backwards
+  # compatibility and testing purposes.
+  def self.seed_for_game(game, generate_history: true)
     return if exists?(game: game)
 
     transaction do
@@ -56,11 +75,13 @@ class GameResource < ApplicationRecord
           available_quantity: calculate_initial_quantity(resource, price),
           price_direction: rand(-1.0..1.0).round(2),
           price_momentum: 0.5,
+          sine_phase_offset: rand(0.0..(2.0 * Math::PI)).round(4),
+          trend_phase_offset: rand(0.0..(2.0 * Math::PI)).round(4),
           last_refreshed_day: game.current_day
         )
 
-        # Generate initial price history
-        game_resource.generate_initial_history(days: 30)
+        # Generate initial price history if requested
+        game_resource.generate_initial_history(days: 30) if generate_history
       end
     end
   end
@@ -85,29 +106,20 @@ class GameResource < ApplicationRecord
     [(base_qty * price_mod * rand(0.8..1.2)).round, 1].max
   end
 
-  # Generate historical prices before game start
+  # Generate historical prices before game start using sinusoidal pattern
   def generate_initial_history(days: 30)
-    current = base_price * rand(0.8..1.2)
-    direction = rand(-1.0..1.0)
-    momentum = rand(0.3..0.7)
     quantity = available_quantity
 
     (1..days).each do |day|
-      price_histories.create!(day: day, price: current.round(2), quantity: quantity)
+      price = calculate_dynamic_price(day)
+      price_histories.create!(day: day, price: price, quantity: quantity)
 
-      # Simulate price movement
-      volatility = resource.price_volatility / 100.0
-      decay = direction.abs * 0.15 * (direction > 0 ? -1 : 1)
-      random = rand(-0.2..0.2) * volatility
-
-      direction = (direction + decay + random).clamp(-1.0, 1.0)
-      momentum = direction != 0 ? [momentum + 0.05, 1.0].min : [momentum - 0.1, 0.1].max
-
-      price_change = direction * momentum * base_price * volatility * 0.15
-      current = (current + price_change).clamp(base_price * 0.2, base_price * 1.8)
-      current = [current, 1.0].max
-
-      quantity = [(quantity + (quantity * price_change / current * 0.3)).round, 0].max
+      # Adjust quantity inversely to price changes
+      if day > 1
+        prev_price = price_histories.find_by(day: day - 1)&.price || price
+        price_ratio = prev_price > 0 ? (price - prev_price) / prev_price : 0
+        quantity = [(quantity + (quantity * price_ratio * -0.3).round), 1].max
+      end
     end
   end
 
@@ -115,47 +127,77 @@ class GameResource < ApplicationRecord
     last_refreshed_day < current_day
   end
 
-  # Daily price update
+  # Daily price update using layered price dynamics:
+  # 1. Sinusoidal base pattern (±10% over 10-day cycle)
+  # 2. Volatility-based random variation
+  # 3. Supply/demand pressure
+  # 4. Event modifiers (applied separately by EventEffectsService)
   def update_market_dynamics!(current_day)
     return if last_refreshed_day >= current_day
 
-    # Calculate forces
-    supply_pressure = calculate_supply_pressure
-    demand_pressure = calculate_demand_pressure
-    momentum_decay = price_direction.abs * 0.15 * (price_direction > 0 ? -1 : 1)
-
-    # Update direction
-    volatility = resource.price_volatility / 100.0
-    random = rand(-0.2..0.2) * volatility
-    new_direction = (price_direction + supply_pressure + demand_pressure + momentum_decay + random).clamp(-1.0, 1.0).round(2)
-
-    # Update momentum
-    new_momentum = if (price_direction * new_direction) < 0
-                     [price_momentum - 0.2, 0.1].max
-                   else
-                     [price_momentum + 0.05, 1.0].min
-                   end.round(2)
-
-    # Calculate new price
-    max_change = base_price * volatility * 0.15
-    price_change = new_direction * new_momentum * max_change
-    new_price = (current_price + price_change).clamp(base_price * 0.2, base_price * 1.8)
-    new_price = [new_price, 1.0].max.round(2)
-
-    # Update quantity
-    price_ratio = current_price > 0 ? (new_price - current_price) / current_price : 0
-    new_quantity = [(available_quantity + (available_quantity * price_ratio * 0.3).round), 0].max
+    new_price = calculate_dynamic_price(current_day)
+    new_quantity = calculate_new_quantity(new_price)
 
     update!(
       current_price: new_price,
-      price_direction: new_direction,
-      price_momentum: new_momentum,
       available_quantity: new_quantity,
       last_refreshed_day: current_day
     )
 
-    # Record in history table
     record_price_for_day(current_day, new_price, new_quantity)
+  end
+
+  # Calculate price using layered dynamics
+  def calculate_dynamic_price(day)
+    # Layer 1: Long-term trend wave (macro momentum)
+    trend_modifier = calculate_trend_modifier(day)
+
+    # Layer 2: Short-term sinusoidal pattern (ripples on top of trend)
+    sine_modifier = calculate_sine_modifier(day)
+
+    # Layer 3: Volatility-based random variation
+    volatility_modifier = calculate_volatility_modifier
+
+    # Layer 4: Supply/demand pressure
+    market_pressure = calculate_supply_pressure + calculate_demand_pressure
+
+    # Combine all modifiers (multiplicative for waves/volatility, additive for pressure)
+    combined_modifier = (1.0 + trend_modifier) * (1.0 + sine_modifier) * (1.0 + volatility_modifier) + market_pressure * 0.05
+
+    new_price = base_price * combined_modifier
+    clamp_price(new_price)
+  end
+
+  # Long-term trend: ±25% over a 20-day period
+  def calculate_trend_modifier(day)
+    angular_frequency = 2.0 * Math::PI / TREND_PERIOD_DAYS
+    Math.sin(angular_frequency * day + trend_phase_offset) * TREND_AMPLITUDE
+  end
+
+  # Short-term oscillation: ±10% over a 10-day period
+  def calculate_sine_modifier(day)
+    angular_frequency = 2.0 * Math::PI / SINE_PERIOD_DAYS
+    Math.sin(angular_frequency * day + sine_phase_offset) * SINE_AMPLITUDE
+  end
+
+  # Random variation scaled by volatility (higher volatility = bigger swings)
+  def calculate_volatility_modifier
+    volatility = resource.price_volatility / 100.0
+    # Base random range of ±15%, scaled by volatility
+    # High volatility (100) = ±15%, Low volatility (0) = ±0%
+    max_swing = 0.15 * volatility
+    rand(-max_swing..max_swing)
+  end
+
+  def calculate_new_quantity(new_price)
+    price_ratio = current_price > 0 ? (new_price - current_price) / current_price : 0
+    [(available_quantity + (available_quantity * price_ratio * -0.3).round), 1].max
+  end
+
+  def clamp_price(price)
+    floor = base_price * PRICE_FLOOR_MULTIPLIER
+    ceiling = base_price * PRICE_CEILING_MULTIPLIER
+    [price.clamp(floor, ceiling), 1.0].max.round(2)
   end
 
   # Get price for a specific day
@@ -174,9 +216,9 @@ class GameResource < ApplicationRecord
   end
 
   # Get price history as array for charting
+  # Returns the most recent N prices in chronological order
   def price_history_array(days: 30)
-    history_hash = price_histories.pluck(:day, :price).to_h
-    (1..days).map { |day| history_hash[day]&.to_f }
+    price_histories.order(day: :desc).limit(days).pluck(:price).reverse.map(&:to_f)
   end
 
   private

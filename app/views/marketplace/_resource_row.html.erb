@@ -28,23 +28,15 @@
   end
 
   # Calculate price change from previous day
-  # The price_histories table stores historical/simulated prices for days 1-30
-  # When the game advances days, new prices are recorded
-  # On day 1, compare to the pre-generated history for day 1 (baseline)
-  # On day 2+, compare to the previous day's recorded price
-  current_day = game.current_day
-  current_price = game_resource.current_price
+  # Historical simulation stores days -30 to 0, then gameplay adds day 1+
+  # We compare the two most recent price history entries to show the latest change
+  recent_prices = game_resource.price_histories.order(day: :desc).limit(2).pluck(:price)
 
-  if current_day > 1
-    previous_price = game_resource.price_on_day(current_day - 1)
-  else
-    # On day 1, compare current price to the initial historical day 1 price
-    previous_price = game_resource.price_on_day(1)
-  end
-
-  if previous_price && previous_price > 0 && current_day > 1
-    price_change = current_price - previous_price
-    price_change_pct = ((price_change / previous_price) * 100).round(1)
+  if recent_prices.size >= 2
+    current_history_price = recent_prices[0]
+    previous_history_price = recent_prices[1]
+    price_change = current_history_price - previous_history_price
+    price_change_pct = ((price_change / previous_history_price) * 100).round(1)
   else
     price_change = 0
     price_change_pct = 0

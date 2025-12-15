@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_14_201201) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_15_041243) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -63,6 +63,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_14_201201) do
     t.integer "last_refreshed_day", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "sine_phase_offset", precision: 5, scale: 4, default: "0.0", null: false
+    t.decimal "trend_phase_offset", precision: 5, scale: 4, default: "0.0", null: false
     t.index ["game_id", "resource_id"], name: "index_game_resources_unique", unique: true
     t.index ["game_id"], name: "index_game_resources_on_game_id"
     t.index ["resource_id"], name: "index_game_resources_on_resource_id"
@@ -89,7 +91,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_14_201201) do
     t.datetime "updated_at", null: false
     t.string "restore_key", null: false
     t.integer "active_game_event_id"
+    t.string "difficulty", default: "street_peddler", null: false
+    t.decimal "wealth_target", precision: 15, scale: 2, default: "25000.0", null: false
+    t.integer "day_target", default: 30, null: false
     t.index ["active_game_event_id"], name: "index_games_on_active_game_event_id"
+    t.index ["difficulty"], name: "index_games_on_difficulty"
     t.index ["restore_key"], name: "index_games_on_restore_key", unique: true
     t.index ["started_at"], name: "index_games_on_started_at"
     t.index ["status"], name: "index_games_on_player_id_and_status"

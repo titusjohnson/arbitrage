@@ -8,8 +8,7 @@ RSpec.describe "Travel", type: :request do
   let(:game) { create(:game, cash: 1000, current_day: 5, current_location: location1) }
 
   before do
-    # Simulate the game session
-    allow_any_instance_of(TravelController).to receive(:current_game).and_return(game)
+    sign_in_with_game(game)
   end
 
   describe "GET /travel" do

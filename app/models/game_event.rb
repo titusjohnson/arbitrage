@@ -27,7 +27,8 @@ class GameEvent < ApplicationRecord
   belongs_to :event
 
   # Validations
-  validates :day_triggered, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 30 }, allow_nil: true
+  # day_triggered can be negative for historical simulation events (days -30 to -1)
+  validates :day_triggered, numericality: { only_integer: true }, allow_nil: true
   validates :days_remaining, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
 
   # Scopes

@@ -8,7 +8,9 @@
 #  cash                 :decimal(10, 2)   default(5000.0), not null
 #  completed_at         :datetime
 #  current_day          :integer          default(1), not null
+#  day_target           :integer          default(30), not null
 #  debt                 :decimal(10, 2)   default(0.0), not null
+#  difficulty           :string           default("street_peddler"), not null
 #  final_score          :integer
 #  health               :integer          default(10), not null
 #  inventory_capacity   :integer          default(100), not null
@@ -19,6 +21,7 @@
 #  status               :string           default("active"), not null
 #  total_purchases      :integer          default(0), not null
 #  total_sales          :integer          default(0), not null
+#  wealth_target        :decimal(15, 2)   default(25000.0), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  active_game_event_id :integer
@@ -27,6 +30,7 @@
 # Indexes
 #
 #  index_games_on_active_game_event_id  (active_game_event_id)
+#  index_games_on_difficulty            (difficulty)
 #  index_games_on_player_id_and_status  (status)
 #  index_games_on_restore_key           (restore_key) UNIQUE
 #  index_games_on_started_at            (started_at)
@@ -42,8 +46,13 @@ FactoryBot.define do
     current_day { 1 }
     association :current_location, factory: :location
 
+    # Difficulty settings - defaults to street_peddler
+    difficulty { "street_peddler" }
+    wealth_target { 25_000 }
+    day_target { 30 }
+
     # Financial state - defaults match migration
-    cash { 2000.00 }
+    cash { 5000.00 }
     bank_balance { 0.00 }
     debt { 0.00 }
 
@@ -63,6 +72,42 @@ FactoryBot.define do
     total_sales { 0 }
     locations_visited { 1 }
     best_deal_profit { 0.00 }
+
+    # Difficulty traits
+    trait :street_peddler do
+      difficulty { "street_peddler" }
+      cash { 5_000 }
+      wealth_target { 25_000 }
+      day_target { 30 }
+    end
+
+    trait :flea_market_flipper do
+      difficulty { "flea_market_flipper" }
+      cash { 15_000 }
+      wealth_target { 100_000 }
+      day_target { 90 }
+    end
+
+    trait :antique_dealer do
+      difficulty { "antique_dealer" }
+      cash { 35_000 }
+      wealth_target { 500_000 }
+      day_target { 180 }
+    end
+
+    trait :commodities_broker do
+      difficulty { "commodities_broker" }
+      cash { 75_000 }
+      wealth_target { 2_500_000 }
+      day_target { 270 }
+    end
+
+    trait :tycoon do
+      difficulty { "tycoon" }
+      cash { 100_000 }
+      wealth_target { 10_000_000 }
+      day_target { 365 }
+    end
 
     # Traits for different game states
     trait :in_progress do
@@ -101,6 +146,11 @@ FactoryBot.define do
 
     trait :in_debt do
       debt { 5000.00 }
+    end
+
+    trait :victory_achieved do
+      cash { 30_000 }
+      wealth_target { 25_000 }
     end
   end
 end

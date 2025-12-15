@@ -10,7 +10,9 @@ require 'rails_helper'
 #  cash                 :decimal(10, 2)   default(5000.0), not null
 #  completed_at         :datetime
 #  current_day          :integer          default(1), not null
+#  day_target           :integer          default(30), not null
 #  debt                 :decimal(10, 2)   default(0.0), not null
+#  difficulty           :string           default("street_peddler"), not null
 #  final_score          :integer
 #  health               :integer          default(10), not null
 #  inventory_capacity   :integer          default(100), not null
@@ -21,6 +23,7 @@ require 'rails_helper'
 #  status               :string           default("active"), not null
 #  total_purchases      :integer          default(0), not null
 #  total_sales          :integer          default(0), not null
+#  wealth_target        :decimal(15, 2)   default(25000.0), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  active_game_event_id :integer
@@ -29,6 +32,7 @@ require 'rails_helper'
 # Indexes
 #
 #  index_games_on_active_game_event_id  (active_game_event_id)
+#  index_games_on_difficulty            (difficulty)
 #  index_games_on_player_id_and_status  (status)
 #  index_games_on_restore_key           (restore_key) UNIQUE
 #  index_games_on_started_at            (started_at)

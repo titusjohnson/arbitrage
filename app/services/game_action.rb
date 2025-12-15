@@ -82,7 +82,7 @@ class GameAction
     unless game_can_continue?
       if game.health <= 0
         errors.add(:base, "Game over: no health remaining")
-      elsif game.current_day > 30
+      elsif game.current_day > game.day_target
         errors.add(:base, "Game over: all days completed")
       else
         errors.add(:base, "Cannot continue game")
