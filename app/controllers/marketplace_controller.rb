@@ -2,9 +2,16 @@ class MarketplaceController < ApplicationController
   def index
     @game = current_game
     @location = @game.current_location
-    @game_resources = @game.game_resources
+
+    all_game_resources = @game.game_resources
       .includes(resource: :tags)
       .order('resources.name ASC')
+
+    # Separate local specialty resources from global resources
+    local_resource_ids = Location.resources_with_affinity(@location).pluck(:id)
+
+    @local_game_resources = all_game_resources.select { |gr| local_resource_ids.include?(gr.resource_id) }
+    @global_game_resources = all_game_resources.reject { |gr| local_resource_ids.include?(gr.resource_id) }
 
     # Get inventory for checking ownership and calculating profit/loss
     @inventory_by_resource = @game.inventory_items
@@ -45,9 +52,9 @@ class MarketplaceController < ApplicationController
               partial: "shared/game_stats",
               locals: { game: @game }
             ),
-            turbo_stream.update("flash_messages",
-              partial: "shared/flash",
-              locals: { flash: { notice: "Successfully purchased #{params[:quantity]} of #{action.send(:resource).name}" } }
+            turbo_stream.append("toast-container",
+              partial: "shared/toast",
+              locals: { type: "success", message: "Successfully purchased #{params[:quantity]} of #{action.send(:resource).name}" }
             )
           ]
         end
@@ -56,9 +63,9 @@ class MarketplaceController < ApplicationController
       respond_to do |format|
         format.html { redirect_to marketplace_path, alert: action.errors.full_messages.join(", ") }
         format.turbo_stream do
-          render turbo_stream: turbo_stream.update("flash_messages",
-            partial: "shared/flash",
-            locals: { flash: { alert: action.errors.full_messages.join(", ") } }
+          render turbo_stream: turbo_stream.append("toast-container",
+            partial: "shared/toast",
+            locals: { type: "error", message: action.errors.full_messages.join(", ") }
           )
         end
       end
@@ -98,9 +105,9 @@ class MarketplaceController < ApplicationController
               partial: "shared/game_stats",
               locals: { game: @game }
             ),
-            turbo_stream.update("flash_messages",
-              partial: "shared/flash",
-              locals: { flash: { notice: "Successfully sold #{params[:quantity]} of #{action.send(:resource).name}" } }
+            turbo_stream.append("toast-container",
+              partial: "shared/toast",
+              locals: { type: "success", message: "Successfully sold #{params[:quantity]} of #{action.send(:resource).name}" }
             )
           ]
         end
@@ -109,9 +116,9 @@ class MarketplaceController < ApplicationController
       respond_to do |format|
         format.html { redirect_to marketplace_path, alert: action.errors.full_messages.join(", ") }
         format.turbo_stream do
-          render turbo_stream: turbo_stream.update("flash_messages",
-            partial: "shared/flash",
-            locals: { flash: { alert: action.errors.full_messages.join(", ") } }
+          render turbo_stream: turbo_stream.append("toast-container",
+            partial: "shared/toast",
+            locals: { type: "error", message: action.errors.full_messages.join(", ") }
           )
         end
       end

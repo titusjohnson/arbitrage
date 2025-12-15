@@ -42,10 +42,13 @@
       </div>
     </header>
 
-    <%= render "shared/flash" %>
-
     <main class="main">
       <%= yield %>
     </main>
+
+    <%= render layout: "shared/toast_container" do %>
+      <%= render "shared/flash_toasts" %>
+      <%= yield :event_toasts %>
+    <% end %>
   </body>
 </html>

@@ -16,6 +16,9 @@
 #  index_locations_on_x_and_y  (x,y) UNIQUE
 #
 class Location < ApplicationRecord
+  # Concerns
+  include LocationAffinity
+
   # Tagging
   Gutentag::ActiveRecord.call self
 

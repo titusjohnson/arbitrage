@@ -1,0 +1,41 @@
+<%
+  # Create sanitized filename from event name
+  svg_filename = event.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
+  svg_partial_path = "events/_graphics/#{svg_filename}"
+
+  # Extract affected tags from resource_effects
+  affected_tags = []
+  if event.resource_effects.present?
+    if event.resource_effects['price_modifiers']
+      event.resource_effects['price_modifiers'].each do |mod|
+        affected_tags.concat(mod['tags'] || [])
+      end
+    end
+    if event.resource_effects['availability_modifiers']
+      event.resource_effects['availability_modifiers'].each do |mod|
+        affected_tags.concat(mod['tags'] || [])
+      end
+    end
+  end
+  affected_tags = affected_tags.uniq.sort
+%>
+<div class="toast toast--event-<%= event.rarity %> <%= 'toast--unseen' if is_unseen %>"
+     data-persist="true"
+     style="position: relative;">
+  <div class="toast__icon">
+    <%= render partial: svg_partial_path rescue '' %>
+  </div>
+  <div class="toast__content">
+    <p class="toast__title"><%= event.name %></p>
+    <p class="toast__message"><%= event.description %></p>
+    <div class="toast__meta">
+      <%= event.event_type&.titleize || 'Event' %> &bull;
+      Severity: <%= event.severity %>/5 &bull;
+      <%= days_remaining %> <%= 'day'.pluralize(days_remaining) %> remaining
+      <% if affected_tags.any? %>
+        &bull; Affects: <%= affected_tags.first(3).map { |t| t.gsub('_', ' ') }.join(', ') %><%= '...' if affected_tags.length > 3 %>
+      <% end %>
+    </div>
+  </div>
+  <button class="toast__close" data-action="click->toast#dismiss" aria-label="Close">&times;</button>
+</div>

@@ -1,0 +1,34 @@
+<%# Single toast notification for turbo stream responses %>
+<%
+  type = local_assigns[:type] || 'info'
+  message = local_assigns[:message] || ''
+  auto_dismiss = local_assigns[:auto_dismiss] || 5000
+
+  icon_svg = case type.to_s
+             when 'success', 'notice'
+               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>'
+             when 'error', 'alert'
+               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'
+             when 'warning'
+               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-8h2v8z"/></svg>'
+             else
+               '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>'
+             end
+
+  title_text = case type.to_s
+               when 'success', 'notice' then 'Success'
+               when 'error', 'alert' then 'Error'
+               when 'warning' then 'Warning'
+               else 'Info'
+               end
+%>
+<div class="toast toast--<%= type %>" data-auto-dismiss="<%= auto_dismiss %>">
+  <div class="toast__icon">
+    <%= icon_svg.html_safe %>
+  </div>
+  <div class="toast__content">
+    <p class="toast__title"><%= title_text %></p>
+    <p class="toast__message"><%= message %></p>
+  </div>
+  <button class="toast__close" data-action="click->toast#dismiss" aria-label="Close">&times;</button>
+</div>

@@ -86,14 +86,18 @@ class GameResource < ApplicationRecord
     end
   end
 
-  def self.calculate_initial_quantity(resource, price)
-    # Based on rarity and price (no location factors)
+  # Average population across all cities (used for scaling)
+  AVERAGE_POPULATION = 1_500_000
+
+  def self.calculate_initial_quantity(resource, price, location: nil)
+    # Base quantities halved from original values
+    # Rare+ items don't scale with population (luxury goods are location-independent)
     base_qty = case resource.rarity
-               when 'exceptional' then rand(1..3)
-               when 'ultra_rare'  then rand(2..5)
-               when 'rare'        then rand(5..15)
-               when 'uncommon'    then rand(20..40)
-               else rand(50..100)
+               when 'exceptional' then rand(1..2)
+               when 'ultra_rare'  then rand(1..3)
+               when 'rare'        then rand(3..8)
+               when 'uncommon'    then rand(10..20)
+               else rand(25..50)
                end
 
     price_mod = case
@@ -103,7 +107,18 @@ class GameResource < ApplicationRecord
                 else 1.3
                 end
 
-    [(base_qty * price_mod * rand(0.8..1.2)).round, 1].max
+    qty = base_qty * price_mod * rand(0.8..1.2)
+
+    # Scale common and uncommon items by city population
+    # Larger cities have more stock, smaller cities have less
+    if location && %w[common uncommon].include?(resource.rarity)
+      population_ratio = location.population.to_f / AVERAGE_POPULATION
+      # Clamp between 0.5x and 2.0x to avoid extreme values
+      population_multiplier = population_ratio.clamp(0.5, 2.0)
+      qty *= population_multiplier
+    end
+
+    [qty.round, 1].max
   end
 
   # Generate historical prices before game start using sinusoidal pattern

@@ -1,3 +1,18 @@
+<%# Render event toasts for unseen events %>
+<% content_for :event_toasts do %>
+  <% @game.game_events.active.includes(:event).each do |game_event| %>
+    <% if !game_event.seen? %>
+      <%= render partial: "shared/event_toast",
+                 locals: {
+                   event: game_event.event,
+                   is_unseen: true,
+                   days_remaining: game_event.days_remaining
+                 } %>
+      <% game_event.update(seen: true) %>
+    <% end %>
+  <% end %>
+<% end %>
+
 <div class="Page">
   <div class="Page__Header">
     <h1 class="Page__Title"><%= @location.name %> Marketplace</h1>
@@ -6,66 +21,10 @@
     <% end %>
   </div>
 
-  <% @active_events = @game.game_events.active.includes(:event) %>
-  <% @active_events.each do |game_event| %>
-    <% event = game_event.event %>
-    <% is_unseen = !game_event.seen? %>
-    <% game_event.update(seen: true) if is_unseen %>
-    <%
-      # Create sanitized filename from event name
-      svg_filename = event.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
-      svg_partial_path = "events/_graphics/#{svg_filename}"
-
-      # Extract affected tags from resource_effects
-      affected_tags = []
-      if event.resource_effects.present?
-        if event.resource_effects['price_modifiers']
-          event.resource_effects['price_modifiers'].each do |mod|
-            affected_tags.concat(mod['tags'] || [])
-          end
-        end
-        if event.resource_effects['availability_modifiers']
-          event.resource_effects['availability_modifiers'].each do |mod|
-            affected_tags.concat(mod['tags'] || [])
-          end
-        end
-      end
-      affected_tags = affected_tags.uniq.sort
-    %>
-    <div class="event-banner event-banner--<%= event.rarity %> <%= 'event-banner--unseen' if is_unseen %>">
-      <div class="event-banner__container">
-        <div class="event-banner__graphic">
-          <%= render partial: svg_partial_path rescue '' %>
-        </div>
-        <div class="event-banner__content">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <h3 class="event-banner__title" style="margin: 0;"><%= event.name %></h3>
-            <% if affected_tags.any? %>
-              <details class="tags-toggle tags-toggle--inline">
-                <summary class="tags-toggle__summary">…</summary>
-                <div class="tags">
-                  <% affected_tags.each do |tag| %>
-                    <span class="tag tag--<%= tag.gsub('_', '-') %>"><%= tag.gsub('_', ' ') %></span>
-                  <% end %>
-                </div>
-              </details>
-            <% end %>
-          </div>
-          <p class="event-banner__description"><%= event.description %></p>
-          <div class="event-banner__meta">
-            <%= event.event_type&.titleize || 'Event' %> •
-            Severity: <%= event.severity %>/5 •
-            <%= game_event.days_remaining %> <%= 'day'.pluralize(game_event.days_remaining) %> remaining
-          </div>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
   <div class="Page__Content">
-    <%= turbo_frame_tag "flash_messages" %>
-
-    <% if @game_resources.any? %>
+    <% if @local_game_resources.any? %>
+      <h2>Local Specialties</h2>
+      <p class="Text--muted" style="margin-bottom: 12px;">Resources with special affinity to <%= @location.name %></p>
       <table class="Table">
         <thead>
           <tr>
@@ -76,7 +35,7 @@
           </tr>
         </thead>
         <tbody>
-          <% @game_resources.each do |game_resource| %>
+          <% @local_game_resources.each do |game_resource| %>
             <%= render partial: "marketplace/resource_row",
                        locals: {
                          game_resource: game_resource,
@@ -87,7 +46,35 @@
           <% end %>
         </tbody>
       </table>
-    <% else %>
+    <% end %>
+
+    <% if @global_game_resources.any? %>
+      <h2>Global Market</h2>
+      <p class="Text--muted" style="margin-bottom: 12px;">All available resources</p>
+      <table class="Table">
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th class="Table__Cell--right">Market Price</th>
+            <th class="Table__Cell--right">Your Position</th>
+            <th class="Table__Cell--right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @global_game_resources.each do |game_resource| %>
+            <%= render partial: "marketplace/resource_row",
+                       locals: {
+                         game_resource: game_resource,
+                         game: @game,
+                         location: @location,
+                         inventory_by_resource: @inventory_by_resource
+                       } %>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <% if @local_game_resources.empty? && @global_game_resources.empty? %>
       <div class="Alert Alert--info">
         <p>No resources available. Something went wrong with game initialization!</p>
       </div>
