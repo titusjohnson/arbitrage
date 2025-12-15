@@ -88,35 +88,75 @@ class NewsService
     items
   end
 
-  # Fetch market news using MarketAnalysisService
+  # Fetch market news from historical price data
+  # Generates news for significant daily price movements
   def market_news
     items = []
 
-    market_service = MarketAnalysisService.new(game, threshold: 0.20, days_back: days_back)
-    movers = market_service.significant_movers(limit: 5)
+    # Get the day range to analyze (from price history)
+    start_day = -days_back + 1
+    end_day = current_day
 
-    movers.each do |movement|
-      direction_word = movement[:direction] == :increase ? "surge" : "plummet"
-      change_desc = movement[:change_percent] > 0 ? "+#{movement[:change_percent]}" : movement[:change_percent]
+    # For each day, find significant price movements
+    (start_day..end_day).each do |day|
+      daily_movers = find_daily_movers(day, threshold: 0.10) # 10% threshold for "newsworthy"
 
-      items << NewsItemPresenter.new(
-        headline: "#{movement[:resource].name} prices #{direction_word} #{movement[:change_percent].abs}%",
-        body: "Market analysts report #{movement[:resource].name} now trading at $#{movement[:current_price]}, #{direction_word}ing from $#{movement[:old_price]} #{days_back} days ago.",
-        timestamp: movement[:game_resource].updated_at,
-        news_type: 'market',
-        severity: (movement[:change_percent].abs / 50).clamp(1, 5).to_i,
-        metadata: {
-          resource_id: movement[:resource].id,
-          change_percent: movement[:change_percent],
-          old_price: movement[:old_price],
-          new_price: movement[:current_price],
-          direction: movement[:direction]
-        },
-        game_day: current_day
-      )
+      daily_movers.first(3).each do |movement| # Top 3 movers per day
+        direction_word = movement[:direction] == :increase ? "surges" : "plummets"
+        change_abs = movement[:change_percent].abs.round(1)
+
+        items << NewsItemPresenter.new(
+          headline: "#{movement[:resource_name]} #{direction_word} #{change_abs}%",
+          body: "#{movement[:resource_name]} #{movement[:direction] == :increase ? 'rises' : 'falls'} from $#{format_currency(movement[:old_price])} to $#{format_currency(movement[:new_price])}.",
+          timestamp: game.started_at + (day.days),
+          news_type: 'market',
+          severity: (change_abs / 20).clamp(1, 5).to_i,
+          metadata: {
+            resource_name: movement[:resource_name],
+            change_percent: movement[:change_percent],
+            old_price: movement[:old_price],
+            new_price: movement[:new_price],
+            direction: movement[:direction]
+          },
+          game_day: day # Keep actual day number (negative for pre-game history)
+        )
+      end
     end
 
     items
+  end
+
+  # Find resources with significant price changes on a specific day
+  def find_daily_movers(day, threshold: 0.10)
+    movers = []
+    previous_day = day - 1
+
+    game.game_resources.includes(:resource, :price_histories).each do |gr|
+      current_price_record = gr.price_histories.find { |ph| ph.day == day }
+      previous_price_record = gr.price_histories.find { |ph| ph.day == previous_day }
+
+      next unless current_price_record && previous_price_record
+
+      old_price = previous_price_record.price.to_f
+      new_price = current_price_record.price.to_f
+
+      next if old_price <= 0
+
+      change_percent = ((new_price - old_price) / old_price * 100)
+
+      if change_percent.abs >= (threshold * 100)
+        movers << {
+          resource_name: gr.resource.name,
+          old_price: old_price,
+          new_price: new_price,
+          change_percent: change_percent.round(1),
+          direction: change_percent > 0 ? :increase : :decrease
+        }
+      end
+    end
+
+    # Sort by absolute change, descending
+    movers.sort_by { |m| -m[:change_percent].abs }
   end
 
   # Fetch player action news from EventLog

@@ -25,7 +25,15 @@
         <% @news_feed.group_by(&:game_day).sort.reverse.each do |day, items| %>
           <section class="newsfeed__day">
             <h2 class="newsfeed__day-header">
-              Day <%= day || current_game.current_day %>
+              <% if day.nil? %>
+                Day <%= current_game.current_day %>
+              <% elsif day == 0 %>
+                Arrival Day
+              <% elsif day < 0 %>
+                <%= day.abs %> <%= 'day'.pluralize(day.abs) %> before arrival
+              <% else %>
+                Day <%= day %>
+              <% end %>
             </h2>
 
             <% items.each do |news_item| %>
