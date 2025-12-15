@@ -70,4 +70,12 @@ Rails.application.routes.draw do
 
   # News
   get "news", to: "news#index"
+
+  # Buddies
+  resources :buddies, only: [:index, :show, :create] do
+    member do
+      post :assign
+      post :collect
+    end
+  end
 end

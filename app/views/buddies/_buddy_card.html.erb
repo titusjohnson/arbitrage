@@ -1,0 +1,100 @@
+<%= tag.div class: "BuddyCard BuddyCard--#{buddy.status}", id: dom_id(buddy) do %>
+  <div class="BuddyCard__Header">
+    <div class="BuddyCard__Name">
+      <strong><%= buddy.name %></strong>
+      <% unless at_buddy_location %>
+        <span class="Text--muted">@ <%= buddy.location.name %></span>
+      <% end %>
+    </div>
+    <div class="BuddyCard__Status BuddyCard__Status--<%= buddy.status %>">
+      <% case buddy.status %>
+      <% when 'idle' %>
+        Idle
+      <% when 'holding' %>
+        Watching
+      <% when 'sold' %>
+        SOLD!
+      <% end %>
+    </div>
+  </div>
+
+  <div class="BuddyCard__Body">
+    <% case buddy.status %>
+    <% when 'idle' %>
+      <% if at_buddy_location %>
+        <p class="Text--muted">Ready to hold resources for you.</p>
+        <%= link_to "Assign Resource", buddy_path(buddy), class: "button button--small" %>
+      <% else %>
+        <p class="Text--muted">Waiting at <%= buddy.location.name %>. Travel there to assign resources.</p>
+      <% end %>
+
+    <% when 'holding' %>
+      <div class="BuddyCard__Resource">
+        <strong><%= buddy.resource.name %></strong>
+        <span class="Text--muted">(<%= buddy.quantity %> units)</span>
+      </div>
+
+      <div class="BuddyCard__Details">
+        <div class="BuddyCard__Row">
+          <span>Bought at:</span>
+          <span>$<%= number_with_delimiter(buddy.purchase_price.round(2), delimiter: ',') %></span>
+        </div>
+        <div class="BuddyCard__Row">
+          <span>Target (+<%= buddy.target_profit_percent %>%):</span>
+          <span>$<%= number_with_delimiter(buddy.target_price.round(2), delimiter: ',') %></span>
+        </div>
+        <div class="BuddyCard__Row">
+          <span>Current local price:</span>
+          <% current = buddy.current_local_price %>
+          <% if current %>
+            <span class="<%= buddy.current_gain_percent >= 0 ? 'Text--success' : 'Text--danger' %>">
+              $<%= number_with_delimiter(current.round(2), delimiter: ',') %>
+              (<%= buddy.current_gain_percent >= 0 ? '+' : '' %><%= buddy.current_gain_percent %>%)
+            </span>
+          <% else %>
+            <span class="Text--muted">N/A</span>
+          <% end %>
+        </div>
+      </div>
+
+      <% if buddy.progress_percent > 0 %>
+        <div class="BuddyCard__Progress">
+          <div class="BuddyCard__ProgressBar" style="width: <%= [buddy.progress_percent, 100].min %>%"></div>
+        </div>
+        <small class="Text--muted"><%= buddy.progress_percent %>% to target</small>
+      <% end %>
+
+      <div class="BuddyCard__Profit">
+        Potential profit:
+        <span class="<%= buddy.current_profit >= 0 ? 'Text--success' : 'Text--danger' %>">
+          $<%= number_with_delimiter(buddy.current_profit.round(2), delimiter: ',') %>
+        </span>
+      </div>
+
+    <% when 'sold' %>
+      <div class="BuddyCard__Success">
+        <p><strong>Sale Complete!</strong></p>
+        <p>
+          Sold <%= buddy.quantity %>x <%= buddy.resource&.name || 'resource' %> on Day <%= buddy.last_sale_day %>
+        </p>
+        <p class="BuddyCard__SaleTotal">
+          Total to collect:
+          <strong class="Text--success">$<%= number_with_delimiter((buddy.held_value + (buddy.last_sale_profit || 0)).round(2), delimiter: ',') %></strong>
+          <% if buddy.last_sale_profit && buddy.last_sale_profit > 0 %>
+            <span class="Text--success">(+$<%= number_with_delimiter(buddy.last_sale_profit.round(2), delimiter: ',') %> profit)</span>
+          <% end %>
+        </p>
+      </div>
+
+      <% if at_buddy_location %>
+        <%= button_to "Collect Proceeds", collect_buddy_path(buddy), method: :post, class: "button button--primary" %>
+      <% else %>
+        <p class="Text--muted">Travel to <%= buddy.location.name %> to collect.</p>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="BuddyCard__Footer">
+    <small class="Text--muted">Hired Day <%= buddy.hire_day %></small>
+  </div>
+<% end %>

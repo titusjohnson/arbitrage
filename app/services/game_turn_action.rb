@@ -39,6 +39,9 @@ class GameTurnAction < GameAction
 
       # Trigger a new event (20% chance) if no active event
       trigger_random_event if should_trigger_event?
+
+      # Check if any buddies should auto-sell
+      process_buddy_sales
     end
 
     true
@@ -75,6 +78,22 @@ class GameTurnAction < GameAction
     active_events.each do |game_event|
       # Decrement the days remaining
       game_event.decrement_days!
+    end
+  end
+
+  def process_buddy_sales
+    service = BuddyCheckService.new(game)
+    sales = service.call
+
+    sales.each do |sale|
+      buddy = sale[:buddy]
+      resource = sale[:resource]
+      profit = sale[:profit]
+
+      game.event_logs.create!(
+        message: "#{buddy.name} sold #{sale[:quantity]}x #{resource.name} for $#{profit.round(2)} profit at #{buddy.location.name}!",
+        loggable: buddy
+      )
     end
   end
 end

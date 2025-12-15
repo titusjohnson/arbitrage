@@ -42,6 +42,22 @@
     <span class="navbar__label">Inventory</span>
   <% end %>
 
+  <%= link_to buddies_path, class: "navbar__item" do %>
+    <svg class="navbar__icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <!-- Person silhouette with contact shadow (buddy icon) -->
+      <!-- Head -->
+      <circle cx="12" cy="7" r="3.5" fill="currentColor"/>
+      <!-- Body -->
+      <path d="M12 11 C7 11 4 14.5 4 18 L4 19 L20 19 L20 18 C20 14.5 17 11 12 11 Z" fill="currentColor"/>
+      <!-- Contact shadow for depth -->
+      <ellipse cx="12" cy="21" rx="6" ry="1.5" fill="currentColor" opacity="0.25"/>
+    </svg>
+    <span class="navbar__label">Buddies</span>
+    <% if buddies_with_sales_count > 0 %>
+      <span class="navbar__badge"><%= buddies_with_sales_count %></span>
+    <% end %>
+  <% end %>
+
   <%= link_to travel_path, class: "navbar__item" do %>
     <svg class="navbar__icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <!-- Simple bus icon -->

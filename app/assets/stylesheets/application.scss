@@ -2402,3 +2402,247 @@ input[type="submit"] {
         border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
     }
 }
+
+// ============================================
+// Buddies Block (BEM)
+// ============================================
+
+.Buddies {
+    &__Section {
+        margin-bottom: 2rem;
+    }
+
+    &__SectionHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid $color-border-light;
+
+        h2 {
+            margin: 0;
+        }
+    }
+
+    &__AssignSection {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: #f9f9f9;
+        border: 1px solid $color-border-light;
+        border-radius: 4px;
+
+        h2 {
+            margin-top: 0;
+        }
+    }
+}
+
+// Buddy Card Component
+.BuddyCard {
+    background: linear-gradient(to bottom, #fafafa 0%, #f0f0f0 100%);
+    border: 1px solid $color-border-light;
+    border-left: 4px solid #999;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    &--idle {
+        border-left-color: #999;
+    }
+
+    &--holding {
+        border-left-color: #2196f3;
+    }
+
+    &--sold {
+        border-left-color: #4caf50;
+        background: linear-gradient(to bottom, #e8f5e9 0%, #c8e6c9 100%);
+    }
+
+    &__Header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid $color-border-light;
+    }
+
+    &__Name {
+        font-size: 14px;
+
+        strong {
+            font-size: 16px;
+        }
+    }
+
+    &__Status {
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 10px;
+        background: #e0e0e0;
+        color: #666;
+
+        &--idle {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        &--holding {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        &--sold {
+            background: #c8e6c9;
+            color: #2e7d32;
+            animation: pulse-success 1.5s ease-in-out infinite;
+        }
+    }
+
+    &__Body {
+        font-size: 13px;
+    }
+
+    &__Resource {
+        font-size: 14px;
+        margin-bottom: 0.75rem;
+    }
+
+    &__Details {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid $color-border-light;
+        border-radius: 3px;
+        padding: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    &__Row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+
+        &:not(:last-child) {
+            border-bottom: 1px dotted $color-border-light;
+        }
+    }
+
+    &__Progress {
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 0.25rem;
+    }
+
+    &__ProgressBar {
+        height: 100%;
+        background: linear-gradient(to right, #4caf50, #8bc34a);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    &__Profit {
+        font-weight: bold;
+        margin-top: 0.5rem;
+    }
+
+    &__Success {
+        text-align: center;
+        padding: 0.5rem 0;
+    }
+
+    &__SaleTotal {
+        font-size: 16px;
+        margin-top: 0.5rem;
+    }
+
+    &__Footer {
+        margin-top: 0.75rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid $color-border-light;
+        font-size: 11px;
+    }
+}
+
+// Form styles for buddy assignment
+.Form {
+    &__Group {
+        margin-bottom: 1rem;
+    }
+
+    &__Label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    &__Input,
+    &__Select {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    &__Help {
+        display: block;
+        font-size: 11px;
+        color: #666;
+        margin-top: 0.25rem;
+    }
+
+    &__Actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+}
+
+// Small button modifier
+.button--small {
+    padding: 2px 8px;
+    font-size: 11px;
+}
+
+// Pulse animation for sold status
+@keyframes pulse-success {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0);
+    }
+}
+
+// Page component for consistency
+.Page {
+    &__Header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid $color-border-light;
+    }
+
+    &__Title {
+        margin: 0 0 0.5rem 0;
+    }
+
+    &__Subtitle {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+    }
+
+    &__Content {
+        // Default content styles
+    }
+
+    &__Actions {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid $color-border-light;
+    }
+}

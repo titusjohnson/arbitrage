@@ -62,6 +62,7 @@ class Game < ApplicationRecord
   has_many :event_logs, dependent: :destroy
   has_many :game_resources, dependent: :destroy
   has_many :location_visits, dependent: :destroy
+  has_many :buddies, dependent: :destroy
 
   # Validations
   validates :restore_key, presence: true, uniqueness: true
@@ -342,6 +343,20 @@ class Game < ApplicationRecord
             .where.not(id: current_location_id)
             .distinct
             .order("location_visits.visited_on DESC")
+  end
+
+  # Buddy Management
+
+  def buddies_at_location(location)
+    buddies.at_location(location)
+  end
+
+  def buddies_with_pending_sales
+    buddies.with_pending_sales
+  end
+
+  def total_buddy_holdings_value
+    buddies.actively_holding.sum { |b| b.held_value }
   end
 
   private

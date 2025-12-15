@@ -1,0 +1,61 @@
+<div class="Page">
+  <div class="Page__Header">
+    <h1 class="Page__Title"><%= @buddy.name %></h1>
+    <p class="Page__Subtitle">
+      Located at <%= @buddy.location.name %>
+      <% unless @at_buddy_location %>
+        <span class="Text--muted">(You are at <%= current_game.current_location.name %>)</span>
+      <% end %>
+    </p>
+  </div>
+
+  <div class="Page__Content">
+    <%= render "buddy_card", buddy: @buddy, at_buddy_location: @at_buddy_location %>
+
+    <% if @buddy.idle? && @at_buddy_location %>
+      <div class="Buddies__AssignSection">
+        <h2>Assign Resource</h2>
+
+        <% if @inventory_items.any? %>
+          <%= form_with url: assign_buddy_path(@buddy), method: :post, scope: :buddy, class: "Form" do |f| %>
+            <div class="Form__Group">
+              <label class="Form__Label" for="buddy_resource_id">Resource</label>
+              <%= f.select :resource_id,
+                  @inventory_items.map { |item|
+                    ["#{item.resource.name} (#{item.quantity} @ $#{item.purchase_price.round(2)})", item.resource.id]
+                  },
+                  { prompt: "Select a resource..." },
+                  class: "Form__Select", id: "buddy_resource_id" %>
+            </div>
+
+            <div class="Form__Group">
+              <label class="Form__Label" for="buddy_quantity">Quantity</label>
+              <%= f.number_field :quantity, min: 1, value: 1, class: "Form__Input", id: "buddy_quantity" %>
+              <small class="Form__Help">How many units to give to <%= @buddy.name %></small>
+            </div>
+
+            <div class="Form__Group">
+              <label class="Form__Label" for="buddy_target_profit_percent">Target Profit %</label>
+              <%= f.number_field :target_profit_percent, min: 1, max: 200, value: 25, class: "Form__Input", id: "buddy_target_profit_percent" %>
+              <small class="Form__Help">Sell when local price reaches this % above purchase price</small>
+            </div>
+
+            <div class="Form__Actions">
+              <%= f.submit "Give to #{@buddy.name}", class: "button button--primary" %>
+              <%= link_to "Cancel", buddies_path, class: "button" %>
+            </div>
+          <% end %>
+        <% else %>
+          <div class="Alert Alert--info">
+            You don't have any resources to assign. Buy some at the market first!
+          </div>
+          <%= link_to "Go to Market", marketplace_path, class: "button" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="Page__Actions">
+      <%= link_to "Back to Buddies", buddies_path, class: "button" %>
+    </div>
+  </div>
+</div>

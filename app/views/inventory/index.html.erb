@@ -67,5 +67,65 @@
         <p>Your inventory is empty. Start trading to acquire resources!</p>
       </div>
     <% end %>
+
+    <% if @buddy_holdings.any? %>
+      <h2 style="margin-top: 2rem;">Held by Buddies</h2>
+      <p class="Text--muted" style="margin-bottom: 1rem;">
+        Total Value: $<%= number_with_delimiter(@game.total_buddy_holdings_value.round(2), delimiter: ',') %>
+      </p>
+
+      <table class="Table">
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th>Buddy</th>
+            <th class="Table__Cell--right">Quantity</th>
+            <th class="Table__Cell--right">Purchase Price</th>
+            <th class="Table__Cell--right">Target</th>
+            <th class="Table__Cell--right">Progress</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @buddy_holdings.each do |buddy| %>
+            <tr>
+              <td>
+                <strong><%= buddy.resource.name %></strong>
+              </td>
+              <td>
+                <%= link_to buddy.name, buddy_path(buddy) %>
+                <br>
+                <small class="Text--muted">@ <%= buddy.location.name %></small>
+              </td>
+              <td class="Table__Cell--right">
+                <strong><%= buddy.quantity %> units</strong>
+              </td>
+              <td class="Table__Cell--right">
+                <strong>$<%= number_with_delimiter(buddy.purchase_price.round(2), delimiter: ',') %></strong>
+                <br>
+                <small class="Text--muted">
+                  Total: $<%= number_with_delimiter(buddy.held_value.round(2), delimiter: ',') %>
+                </small>
+              </td>
+              <td class="Table__Cell--right">
+                +<%= buddy.target_profit_percent %>%
+                <br>
+                <small class="Text--muted">
+                  $<%= number_with_delimiter(buddy.target_price.round(2), delimiter: ',') %>
+                </small>
+              </td>
+              <td class="Table__Cell--right">
+                <span class="<%= buddy.current_gain_percent >= 0 ? 'Text--success' : 'Text--danger' %>">
+                  <%= buddy.current_gain_percent >= 0 ? '+' : '' %><%= buddy.current_gain_percent %>%
+                </span>
+                <br>
+                <small class="Text--muted">
+                  <%= buddy.progress_percent %>% to target
+                </small>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
   </div>
 </div>

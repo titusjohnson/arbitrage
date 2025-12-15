@@ -10,7 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_041243) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_15_054707) do
+  create_table "buddies", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "location_id", null: false
+    t.integer "resource_id"
+    t.string "name", null: false
+    t.integer "hire_cost", default: 100, null: false
+    t.integer "hire_day", null: false
+    t.integer "quantity", default: 0
+    t.decimal "purchase_price", precision: 10, scale: 2
+    t.integer "target_profit_percent", default: 25
+    t.string "status", default: "idle", null: false
+    t.decimal "last_sale_profit", precision: 10, scale: 2
+    t.integer "last_sale_day"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "location_id"], name: "index_buddies_on_game_id_and_location_id"
+    t.index ["game_id", "status"], name: "index_buddies_on_game_id_and_status"
+    t.index ["game_id"], name: "index_buddies_on_game_id"
+    t.index ["location_id"], name: "index_buddies_on_location_id"
+    t.index ["resource_id"], name: "index_buddies_on_resource_id"
+  end
+
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -185,6 +207,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_041243) do
     t.index ["rarity"], name: "index_resources_on_rarity"
   end
 
+  add_foreign_key "buddies", "games"
+  add_foreign_key "buddies", "locations"
+  add_foreign_key "buddies", "resources"
   add_foreign_key "event_logs", "games"
   add_foreign_key "game_events", "events"
   add_foreign_key "game_events", "games"
