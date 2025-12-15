@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_14_201201) do
   create_table "event_logs", force: :cascade do |t|
     t.integer "game_id", null: false
     t.string "loggable_type"
@@ -18,7 +18,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
     t.text "message", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "read_at"
     t.index ["game_id", "created_at"], name: "index_event_logs_on_game_id_and_created_at"
+    t.index ["game_id", "read_at"], name: "index_event_logs_on_game_id_and_read_at"
     t.index ["game_id"], name: "index_event_logs_on_game_id"
     t.index ["loggable_type", "loggable_id"], name: "index_event_logs_on_loggable"
   end
@@ -48,6 +50,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_game_events_on_event_id"
     t.index ["game_id"], name: "index_game_events_on_game_id"
+  end
+
+  create_table "game_resources", force: :cascade do |t|
+    t.integer "game_id", null: false
+    t.integer "resource_id", null: false
+    t.decimal "current_price", precision: 10, scale: 2, null: false
+    t.decimal "base_price", precision: 10, scale: 2, null: false
+    t.integer "available_quantity", default: 100, null: false
+    t.decimal "price_direction", precision: 3, scale: 2, default: "0.0", null: false
+    t.decimal "price_momentum", precision: 3, scale: 2, default: "0.5", null: false
+    t.integer "last_refreshed_day", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_id", "resource_id"], name: "index_game_resources_unique", unique: true
+    t.index ["game_id"], name: "index_game_resources_on_game_id"
+    t.index ["resource_id"], name: "index_game_resources_on_resource_id"
   end
 
   create_table "games", force: :cascade do |t|
@@ -112,26 +130,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
     t.index ["resource_id"], name: "index_inventory_items_on_resource_id"
   end
 
-  create_table "location_resources", force: :cascade do |t|
-    t.integer "game_id", null: false
-    t.integer "location_id", null: false
-    t.integer "resource_id", null: false
-    t.decimal "current_price", precision: 10, scale: 2, null: false
-    t.integer "last_refreshed_day", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.integer "available_quantity", default: 100, null: false
-    t.decimal "price_direction", precision: 3, scale: 2, default: "0.0", null: false
-    t.decimal "price_momentum", precision: 3, scale: 2, default: "0.5", null: false
-    t.decimal "base_price", precision: 10, scale: 2
-    t.text "price_history"
-    t.index ["game_id", "location_id", "resource_id"], name: "index_location_resources_unique", unique: true
-    t.index ["game_id", "location_id"], name: "index_location_resources_on_game_and_location"
-    t.index ["game_id"], name: "index_location_resources_on_game_id"
-    t.index ["location_id"], name: "index_location_resources_on_location_id"
-    t.index ["resource_id"], name: "index_location_resources_on_resource_id"
-  end
-
   create_table "location_visits", force: :cascade do |t|
     t.integer "game_id", null: false
     t.integer "location_id", null: false
@@ -155,6 +153,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
     t.index ["x", "y"], name: "index_locations_on_x_and_y", unique: true
   end
 
+  create_table "resource_price_histories", force: :cascade do |t|
+    t.integer "game_resource_id", null: false
+    t.integer "day", null: false
+    t.decimal "price", precision: 10, scale: 2, null: false
+    t.integer "quantity", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["game_resource_id", "day", "price"], name: "index_price_histories_for_analysis"
+    t.index ["game_resource_id", "day"], name: "index_price_histories_unique", unique: true
+    t.index ["game_resource_id"], name: "index_resource_price_histories_on_game_resource_id"
+  end
+
   create_table "resources", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -172,12 +182,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_13_061614) do
   add_foreign_key "event_logs", "games"
   add_foreign_key "game_events", "events"
   add_foreign_key "game_events", "games"
+  add_foreign_key "game_resources", "games"
+  add_foreign_key "game_resources", "resources"
   add_foreign_key "games", "game_events", column: "active_game_event_id"
   add_foreign_key "inventory_items", "games"
   add_foreign_key "inventory_items", "resources"
-  add_foreign_key "location_resources", "games"
-  add_foreign_key "location_resources", "locations"
-  add_foreign_key "location_resources", "resources"
   add_foreign_key "location_visits", "games"
   add_foreign_key "location_visits", "locations"
+  add_foreign_key "resource_price_histories", "game_resources"
 end

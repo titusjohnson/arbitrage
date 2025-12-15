@@ -48,8 +48,8 @@ class TravelAction < GameAction
       # Log the travel event
       create_log(destination, "Traveled to #{destination.name} for $#{travel_cost}.")
 
-      # Seed location resources on first visit (fog of war mechanic)
-      LocationResource.seed_for_location(game, destination)
+      # Game resources are seeded when the game is created, not per-location
+      # (Game-wide pricing model)
 
       # Update market prices and quantities across all locations
       game_turn_action = GameTurnAction.new(game)

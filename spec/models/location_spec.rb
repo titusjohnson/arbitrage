@@ -41,10 +41,6 @@ RSpec.describe Location, type: :model do
   describe 'associations' do
     let(:location) { create(:location) }
 
-    it 'has many location_resources' do
-      expect(location).to respond_to(:location_resources)
-    end
-
     it 'has many location_visits' do
       expect(location).to respond_to(:location_visits)
     end

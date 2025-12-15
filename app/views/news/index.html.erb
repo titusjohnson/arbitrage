@@ -1,0 +1,43 @@
+<div class="Page">
+  <div class="Page__Header">
+    <h1 class="Page__Title">The Daily Chronicle</h1>
+    <p class="Page__Subtitle">Market reports, world events, and trading history</p>
+  </div>
+
+  <div class="Page__Content">
+    <!-- Filters -->
+    <div class="newsfeed__filters">
+      <%= link_to "All News", news_path(days_back: @days_back),
+          class: "filter-button #{@current_filter.nil? ? 'filter-button--active' : ''}" %>
+      <%= link_to "World Events", news_path(type: 'event', days_back: @days_back),
+          class: "filter-button #{@current_filter == 'event' ? 'filter-button--active' : ''}" %>
+      <%= link_to "Market Reports", news_path(type: 'market', days_back: @days_back),
+          class: "filter-button #{@current_filter == 'market' ? 'filter-button--active' : ''}" %>
+      <%= link_to "My Trades", news_path(type: 'action', days_back: @days_back),
+          class: "filter-button #{@current_filter == 'action' ? 'filter-button--active' : ''}" %>
+      <%= link_to "Trends", news_path(type: 'trend', days_back: @days_back),
+          class: "filter-button #{@current_filter == 'trend' ? 'filter-button--active' : ''}" %>
+    </div>
+
+    <!-- News Feed -->
+    <div class="newsfeed">
+      <% if @news_feed.any? %>
+        <% @news_feed.group_by(&:game_day).sort.reverse.each do |day, items| %>
+          <section class="newsfeed__day">
+            <h2 class="newsfeed__day-header">
+              Day <%= day || current_game.current_day %>
+            </h2>
+
+            <% items.each do |news_item| %>
+              <%= render partial: "news/news_item", locals: { item: news_item } %>
+            <% end %>
+          </section>
+        <% end %>
+      <% else %>
+        <div class="Alert Alert--info">
+          <p>No news to report for the selected filters.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

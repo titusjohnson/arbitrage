@@ -63,6 +63,6 @@ Rails.application.routes.draw do
   # Inventory
   get "inventory", to: "inventory#index"
 
-  # Event Logs
-  get "log", to: "event_logs#index"
+  # News
+  get "news", to: "news#index"
 end

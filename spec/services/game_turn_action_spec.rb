@@ -17,18 +17,17 @@ RSpec.describe GameTurnAction, type: :service do
   end
 
   describe '#run' do
-    context 'with no location resources' do
+    context 'with no game resources' do
       it 'succeeds without errors' do
         action = GameTurnAction.new(game)
         expect(action.run).to be true
       end
     end
 
-    context 'with location resources' do
-      let!(:location_resource) do
-        create(:location_resource,
+    context 'with game resources' do
+      let!(:game_resource) do
+        create(:game_resource,
           game: game,
-          location: location,
           resource: resource,
           current_price: 100.0,
           base_price: 100.0,
@@ -43,73 +42,69 @@ RSpec.describe GameTurnAction, type: :service do
         game.update!(current_day: 2)
       end
 
-      it 'updates market dynamics for all location resources' do
+      it 'updates market dynamics for all game resources' do
         action = GameTurnAction.new(game)
         expect(action.run).to be true
 
-        location_resource.reload
-        expect(location_resource.last_refreshed_day).to eq(2)
+        game_resource.reload
+        expect(game_resource.last_refreshed_day).to eq(2)
       end
 
       it 'changes prices based on direction' do
         action = GameTurnAction.new(game)
-        old_price = location_resource.current_price
+        old_price = game_resource.current_price
 
         action.run
-        location_resource.reload
+        game_resource.reload
 
-        expect(location_resource.current_price).not_to eq(old_price)
+        expect(game_resource.current_price).not_to eq(old_price)
       end
 
       it 'updates price direction' do
         action = GameTurnAction.new(game)
-        old_direction = location_resource.price_direction
 
         action.run
-        location_resource.reload
+        game_resource.reload
 
         # Direction should change based on market forces
-        expect(location_resource.price_direction).to be_between(-1.0, 1.0)
+        expect(game_resource.price_direction).to be_between(-1.0, 1.0)
       end
 
       it 'updates price momentum' do
         action = GameTurnAction.new(game)
 
         action.run
-        location_resource.reload
+        game_resource.reload
 
-        expect(location_resource.price_momentum).to be_between(0.0, 1.0)
+        expect(game_resource.price_momentum).to be_between(0.0, 1.0)
       end
 
       it 'updates available quantity' do
         action = GameTurnAction.new(game)
 
         action.run
-        location_resource.reload
+        game_resource.reload
 
-        expect(location_resource.available_quantity).to be >= 0
+        expect(game_resource.available_quantity).to be >= 0
       end
     end
 
-    context 'with multiple locations and resources' do
-      let(:location2) { create(:location) }
+    context 'with multiple resources' do
       let(:resource2) { create(:resource) }
 
-      let!(:lr1) { create(:location_resource, game: game, location: location, resource: resource, last_refreshed_day: 1) }
-      let!(:lr2) { create(:location_resource, game: game, location: location, resource: resource2, last_refreshed_day: 1) }
-      let!(:lr3) { create(:location_resource, game: game, location: location2, resource: resource, last_refreshed_day: 1) }
+      let!(:gr1) { create(:game_resource, game: game, resource: resource, last_refreshed_day: 1) }
+      let!(:gr2) { create(:game_resource, game: game, resource: resource2, last_refreshed_day: 1) }
 
       before do
         game.update!(current_day: 2)
       end
 
-      it 'updates all location resources' do
+      it 'updates all game resources' do
         action = GameTurnAction.new(game)
         action.run
 
-        expect(lr1.reload.last_refreshed_day).to eq(2)
-        expect(lr2.reload.last_refreshed_day).to eq(2)
-        expect(lr3.reload.last_refreshed_day).to eq(2)
+        expect(gr1.reload.last_refreshed_day).to eq(2)
+        expect(gr2.reload.last_refreshed_day).to eq(2)
       end
     end
 

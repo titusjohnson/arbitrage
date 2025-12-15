@@ -1,18 +1,23 @@
-# Service to calculate cumulative event effects on a LocationResource
+# Service to calculate cumulative event effects on a GameResource
 # Handles multiple concurrent events and their tag-based modifiers
 #
 # Usage:
-#   effects = EventEffectsService.new(game, location_resource).call
+#   # Game-wide effects only (no location bonuses)
+#   effects = EventEffectsService.new(game, game_resource).call
+#
+#   # With location bonuses
+#   effects = EventEffectsService.new(game, game_resource, location: current_location).call
+#
 #   modified_price = base_price * effects[:price_multiplier]
 #   modified_availability = base_availability * effects[:availability_multiplier]
 class EventEffectsService
-  attr_reader :game, :location_resource, :location, :resource
+  attr_reader :game, :game_resource, :resource, :location
 
-  def initialize(game, location_resource)
+  def initialize(game, game_resource, location: nil)
     @game = game
-    @location_resource = location_resource
-    @location = location_resource.location
-    @resource = location_resource.resource
+    @game_resource = game_resource
+    @resource = game_resource.resource
+    @location = location
   end
 
   def call
@@ -34,7 +39,7 @@ class EventEffectsService
     active_game_events.each do |game_event|
       event = game_event.event
 
-      # Apply resource-level price modifiers
+      # Apply resource-level price modifiers (game-wide)
       if event.resource_effects.present? && event.resource_effects['price_modifiers']
         event.resource_effects['price_modifiers'].each do |modifier|
           if tags_match?(modifier, resource.tags)
@@ -43,8 +48,8 @@ class EventEffectsService
         end
       end
 
-      # Apply location-scoped price modifiers
-      if event.location_effects.present? && event.location_effects['price_modifiers']
+      # Apply location-scoped price modifiers (only if location provided)
+      if location.present? && event.location_effects.present? && event.location_effects['price_modifiers']
         event.location_effects['price_modifiers'].each do |modifier|
           if scoped_tags_match?(modifier, location.tags, resource.tags)
             multiplier *= modifier['multiplier']
@@ -62,7 +67,7 @@ class EventEffectsService
     active_game_events.each do |game_event|
       event = game_event.event
 
-      # Apply resource-level availability modifiers
+      # Apply resource-level availability modifiers (game-wide)
       if event.resource_effects.present? && event.resource_effects['availability_modifiers']
         event.resource_effects['availability_modifiers'].each do |modifier|
           if tags_match?(modifier, resource.tags)
@@ -71,8 +76,8 @@ class EventEffectsService
         end
       end
 
-      # Apply location-scoped quantity modifiers
-      if event.location_effects.present? && event.location_effects['quantity_modifiers']
+      # Apply location-scoped quantity modifiers (only if location provided)
+      if location.present? && event.location_effects.present? && event.location_effects['quantity_modifiers']
         event.location_effects['quantity_modifiers'].each do |modifier|
           if scoped_tags_match?(modifier, location.tags, resource.tags)
             multiplier *= modifier['multiplier']

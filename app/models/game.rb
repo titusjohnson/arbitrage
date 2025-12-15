@@ -45,7 +45,7 @@ class Game < ApplicationRecord
   has_many :inventory_items, dependent: :destroy
   has_many :resources, through: :inventory_items
   has_many :event_logs, dependent: :destroy
-  has_many :location_resources, dependent: :destroy
+  has_many :game_resources, dependent: :destroy
   has_many :location_visits, dependent: :destroy
 
   # Validations
@@ -86,7 +86,7 @@ class Game < ApplicationRecord
   before_validation :set_started_at, on: :create
   before_validation :set_starting_location, on: :create
   after_create :log_game_start
-  after_create :seed_starting_location_resources
+  after_create :seed_game_resources
   after_save :check_game_over_conditions
 
   # Scopes
@@ -311,9 +311,9 @@ class Game < ApplicationRecord
     )
   end
 
-  def seed_starting_location_resources
-    # Seed resources for the starting location (fog of war)
-    LocationResource.seed_for_location(self, current_location)
+  def seed_game_resources
+    # Seed all resources for this game with game-wide pricing
+    GameResource.seed_for_game(self)
   end
 
   def check_game_over_conditions

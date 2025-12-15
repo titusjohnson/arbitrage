@@ -1,12 +1,12 @@
 # Handles game state changes that occur during a turn
-# This action updates market prices and inventory across all locations
+# This action updates market prices and inventory game-wide
 #
 # Usage:
 #   action = GameTurnAction.new(game)
 #   action.run
 #
 # This action:
-#   - Updates all LocationResource prices based on market forces
+#   - Updates all GameResource prices based on market forces
 #   - Adjusts available quantities based on supply/demand
 #   - Creates parabolic price movements over time
 #   - Triggers random events (20% chance)
@@ -29,9 +29,9 @@ class GameTurnAction < GameAction
     return false unless valid?
 
     ActiveRecord::Base.transaction do
-      # Update all location resources for this game
-      game.location_resources.find_each do |location_resource|
-        location_resource.update_market_dynamics!(game.current_day)
+      # Update all game resources for this game
+      game.game_resources.find_each do |game_resource|
+        game_resource.update_market_dynamics!(game.current_day)
       end
 
       # Decrement active event duration if one exists

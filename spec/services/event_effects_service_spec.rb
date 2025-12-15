@@ -4,10 +4,10 @@ RSpec.describe EventEffectsService, type: :service do
   let(:game) { create(:game) }
   let(:location) { game.current_location }
   let(:resource) { create(:resource) }
-  let(:location_resource) do
-    create(:location_resource, game: game, location: location, resource: resource)
+  let(:game_resource) do
+    create(:game_resource, game: game, resource: resource)
   end
-  let(:service) { described_class.new(game, location_resource) }
+  let(:service) { described_class.new(game, game_resource) }
 
   describe '#call' do
     context 'with no active events' do
@@ -242,6 +242,9 @@ RSpec.describe EventEffectsService, type: :service do
     end
 
     context 'with location-scoped effects' do
+      # Location effects are only applied when a location is provided
+      let(:service_with_location) { described_class.new(game, game_resource, location: location) }
+
       context 'when both location and resource match' do
         let!(:event) do
           create(:event, :active,
@@ -269,14 +272,18 @@ RSpec.describe EventEffectsService, type: :service do
           location.save!
           resource.tag_names = ['food']
           resource.save!
-          location_resource.reload
         end
 
-        it 'applies the location-scoped modifier' do
-          service = described_class.new(game, location_resource)
-          result = service.call
+        it 'applies the location-scoped modifier when location is provided' do
+          result = service_with_location.call
 
           expect(result[:price_multiplier]).to eq(0.5)
+        end
+
+        it 'does not apply location-scoped modifier when location is not provided' do
+          result = service.call
+
+          expect(result[:price_multiplier]).to eq(1.0)
         end
       end
 
@@ -307,11 +314,10 @@ RSpec.describe EventEffectsService, type: :service do
           location.save!
           resource.tag_names = ['technology']
           resource.save!
-          location_resource.reload
         end
 
         it 'does not apply the modifier' do
-          result = service.call
+          result = service_with_location.call
 
           expect(result[:price_multiplier]).to eq(1.0)
         end
@@ -344,11 +350,10 @@ RSpec.describe EventEffectsService, type: :service do
           location.save!
           resource.tag_names = ['food']
           resource.save!
-          location_resource.reload
         end
 
         it 'does not apply the modifier' do
-          result = service.call
+          result = service_with_location.call
 
           expect(result[:price_multiplier]).to eq(1.0)
         end
@@ -380,12 +385,10 @@ RSpec.describe EventEffectsService, type: :service do
           location.save!
           resource.tag_names = ['food']
           resource.save!
-          location_resource.reload
         end
 
         it 'applies to all resources in matching locations' do
-          service = described_class.new(game, location_resource)
-          result = service.call
+          result = service_with_location.call
 
           expect(result[:price_multiplier]).to eq(1.5)
         end
@@ -415,12 +418,10 @@ RSpec.describe EventEffectsService, type: :service do
         before do
           resource.tag_names = ['perishable']
           resource.save!
-          location_resource.reload
         end
 
-        it 'applies to matching resources in all locations' do
-          service = described_class.new(game, location_resource)
-          result = service.call
+        it 'applies to matching resources when location is provided' do
+          result = service_with_location.call
 
           expect(result[:availability_multiplier]).to eq(0.3)
         end
@@ -495,6 +496,8 @@ RSpec.describe EventEffectsService, type: :service do
     end
 
     context 'with complex real-world scenario' do
+      let(:service_with_location) { described_class.new(game, game_resource, location: location) }
+
       # The Great Depression event
       let!(:depression_event) do
         create(:event, :active,
@@ -578,7 +581,7 @@ RSpec.describe EventEffectsService, type: :service do
         resource.tag_names = ['investment']
         resource.save!
 
-        result = service.call
+        result = service_with_location.call
 
         # 0.3 (investment) * 0.2 (financial center) = 0.06
         expect(result[:price_multiplier]).to eq(0.06)

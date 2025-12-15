@@ -25,7 +25,7 @@ class Resource < ApplicationRecord
   # Associations
   has_many :inventory_items, dependent: :destroy
   has_many :games, through: :inventory_items
-  has_many :location_resources, dependent: :destroy
+  has_many :game_resources, dependent: :destroy
 
   # Enums
   enum :rarity, {

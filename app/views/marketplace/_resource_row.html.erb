@@ -1,5 +1,5 @@
 <%
-  resource = location_resource.resource
+  resource = game_resource.resource
   inventory_items = inventory_by_resource[resource.id] || []
   has_inventory = inventory_items.any?
 
@@ -10,29 +10,39 @@
     avg_purchase_price = total_cost / total_quantity
 
     # Calculate profit/loss
-    current_value = location_resource.current_price * total_quantity
+    current_value = game_resource.current_price * total_quantity
     total_paid = total_cost
     profit_loss = current_value - total_paid
     profit_loss_pct = ((profit_loss / total_paid) * 100).round(1)
     is_profit = profit_loss >= 0
   end
 
-  # Calculate event effects
-  event_effects = EventEffectsService.new(game, location_resource).call
+  # Calculate event effects (with location for location-specific bonuses)
+  event_effects = EventEffectsService.new(game, game_resource, location: location).call
   has_price_effect = event_effects[:price_multiplier] != 1.0
   has_availability_effect = event_effects[:availability_multiplier] != 1.0
 
   if has_price_effect
     # Calculate what the price would be without events
-    base_price_without_events = (location_resource.current_price / event_effects[:price_multiplier]).round(2)
+    base_price_without_events = (game_resource.current_price / event_effects[:price_multiplier]).round(2)
   end
 
   # Calculate price change from previous day
+  # The price_histories table stores historical/simulated prices for days 1-30
+  # When the game advances days, new prices are recorded
+  # On day 1, compare to the pre-generated history for day 1 (baseline)
+  # On day 2+, compare to the previous day's recorded price
   current_day = game.current_day
-  previous_price = location_resource.get_price_for_day(current_day - 1)
-  current_price = location_resource.current_price
+  current_price = game_resource.current_price
 
-  if previous_price && previous_price > 0
+  if current_day > 1
+    previous_price = game_resource.price_on_day(current_day - 1)
+  else
+    # On day 1, compare current price to the initial historical day 1 price
+    previous_price = game_resource.price_on_day(1)
+  end
+
+  if previous_price && previous_price > 0 && current_day > 1
     price_change = current_price - previous_price
     price_change_pct = ((price_change / previous_price) * 100).round(1)
   else
@@ -41,7 +51,7 @@
   end
 
   # Determine trend based on last 3 days
-  price_history = location_resource.price_history_array(days: 30).compact
+  price_history = game_resource.price_history_array(days: 30).compact
   if price_history.size >= 3
     recent_prices = price_history.last(3)
     trend = if recent_prices[2] > recent_prices[1] && recent_prices[1] > recent_prices[0]
@@ -67,7 +77,7 @@
                 else "muted"
                 end
 %>
-<tr id="resource_<%= location_resource.id %>">
+<tr id="resource_<%= game_resource.id %>">
   <td>
     <strong><%= resource.name %></strong>
     <% if resource.description.present? %>
@@ -79,7 +89,7 @@
       <small class="Text--muted">
         Size: <%= resource.inventory_size %>
         | <%= resource.rarity.titleize %>
-        | Stock: <%= location_resource.available_quantity %><% if has_availability_effect %> (<%= event_effects[:availability_multiplier] > 1.0 ? '+' : '' %><%= ((event_effects[:availability_multiplier] - 1.0) * 100).round(0) %>%)<% end %>
+        | Stock: <%= game_resource.available_quantity %><% if has_availability_effect %> (<%= event_effects[:availability_multiplier] > 1.0 ? '+' : '' %><%= ((event_effects[:availability_multiplier] - 1.0) * 100).round(0) %>%)<% end %>
       </small>
       <% if resource.tags.any? %>
         <details class="tags-toggle">
@@ -97,7 +107,7 @@
     <div class="price-with-sparkline">
       <span class="sparkline sparkline--price">
         <%= peity_line_chart(
-          location_resource.price_history_array(days: 30).compact,
+          game_resource.price_history_array(days: 30).compact,
           options: {
             width: 60,
             height: 20,
@@ -108,7 +118,7 @@
         ) %>
       </span>
       <div>
-        <strong>$<%= number_with_delimiter(location_resource.current_price, delimiter: ',') %></strong>
+        <strong>$<%= number_with_delimiter(game_resource.current_price, delimiter: ',') %></strong>
         <span class="Text--<%= trend_color %>">
           <%= trend_icon %>
           <% if price_change != 0 %>
@@ -147,13 +157,13 @@
   </td>
   <td class="Table__Cell--right">
     <%= form_with url: marketplace_buy_path, method: :post, style: "display: inline;" do |form| %>
-      <%= form.hidden_field :location_resource_id, value: location_resource.id %>
+      <%= form.hidden_field :game_resource_id, value: game_resource.id %>
       <%= form.hidden_field :quantity, value: 1 %>
       <%= form.submit "Buy", class: "button button--primary" %>
     <% end %>
     <% if has_inventory %>
       <%= form_with url: marketplace_sell_path, method: :post, style: "display: inline;" do |form| %>
-        <%= form.hidden_field :location_resource_id, value: location_resource.id %>
+        <%= form.hidden_field :game_resource_id, value: game_resource.id %>
         <%= form.hidden_field :quantity, value: 1 %>
         <%= form.submit "Sell", class: "button" %>
       <% end %>

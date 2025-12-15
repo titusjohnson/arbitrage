@@ -93,7 +93,7 @@
                             class="info-button"
                             data-action="click->buddy-info#showModal"
                             data-buddy-info-location-id-param="<%= location.id %>"
-                            title="Check prices with your buddy">
+                            title="Check location bonuses with your buddy">
                       Info
                     </button>
                   <% end %>
@@ -113,20 +113,20 @@
     <% location = @locations.find { |l| l.id == location_id } %>
     <% next unless location %>
 
-    <% location_resources = current_game.location_resources
-                                        .includes(:resource)
-                                        .where(location: location)
-                                        .order('resources.name') %>
+    <% game_resources = current_game.game_resources
+                                    .includes(:resource)
+                                    .order('resources.name')
+                                    .limit(20) %>
 
     <div id="buddy-modal-<%= location.id %>" class="modal__template">
       <div class="modal__content">
         <div class="modal__header">
-          <h2 class="modal__title">Prices in <%= location.name %></h2>
+          <h2 class="modal__title">Market Info for <%= location.name %></h2>
           <button class="modal__close" aria-label="Close">&times;</button>
         </div>
         <div class="modal__body">
-          <p class="modal__subtitle">Your buddy reports the following prices:</p>
-          <% if location_resources.any? %>
+          <p class="modal__subtitle">Your buddy reports these prices (with location bonuses):</p>
+          <% if game_resources.any? %>
             <table class="prices-table">
               <thead>
                 <tr>
@@ -136,33 +136,34 @@
                 </tr>
               </thead>
               <tbody>
-                <% location_resources.each do |lr| %>
+                <% game_resources.each do |gr| %>
                   <%
-                    # Calculate event effects for this resource
-                    lr_event_effects = EventEffectsService.new(current_game, lr).call
-                    lr_has_price_effect = lr_event_effects[:price_multiplier] != 1.0
+                    # Calculate event effects for this resource at this location
+                    gr_event_effects = EventEffectsService.new(current_game, gr, location: location).call
+                    gr_has_price_effect = gr_event_effects[:price_multiplier] != 1.0
+                    effective_price = (gr.current_price * gr_event_effects[:price_multiplier]).round(2)
                   %>
                   <tr>
-                    <td class="prices-table__name"><%= lr.resource.name %></td>
+                    <td class="prices-table__name"><%= gr.resource.name %></td>
                     <td class="prices-table__price">
-                      $<%= number_with_precision(lr.current_price, precision: 2) %>
-                      <% if lr_has_price_effect %>
+                      $<%= number_with_precision(effective_price, precision: 2) %>
+                      <% if gr_has_price_effect %>
                         ⚡
-                      <% elsif lr.price_direction > 0.1 %>
+                      <% elsif gr.price_direction > 0.1 %>
                         📈
-                      <% elsif lr.price_direction < -0.1 %>
+                      <% elsif gr.price_direction < -0.1 %>
                         📉
                       <% else %>
                         ➡️
                       <% end %>
                     </td>
-                    <td class="prices-table__available"><%= lr.available_quantity %></td>
+                    <td class="prices-table__available"><%= gr.available_quantity %></td>
                   </tr>
                 <% end %>
               </tbody>
             </table>
           <% else %>
-            <p class="modal__empty">No prices available for this location yet.</p>
+            <p class="modal__empty">No prices available yet.</p>
           <% end %>
         </div>
       </div>

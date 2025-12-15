@@ -1,7 +1,7 @@
 # Handles purchasing resources
 #
 # Usage:
-#   action = BuyAction.new(game, location_resource_id: 123, quantity: 10)
+#   action = BuyAction.new(game, game_resource_id: 123, quantity: 10)
 #   if action.valid?
 #     success = action.run # returns true/false
 #   else
@@ -9,24 +9,24 @@
 #   end
 #
 # Params:
-#   - location_resource_id: ID of the LocationResource (required)
+#   - game_resource_id: ID of the GameResource (required)
 #   - quantity: Number of units to purchase (required, must be positive integer)
 #
 # Validations:
-#   - LocationResource must exist
+#   - GameResource must exist
 #   - Quantity must be positive
 #   - Player must have enough cash
 #   - Player must have enough inventory space
-#   - Must have enough available quantity at location
+#   - Must have enough available quantity
 #
 class BuyAction < GameAction
-  attribute :location_resource_id, :integer
+  attribute :game_resource_id, :integer
   attribute :quantity, :integer
 
-  validates :location_resource_id, presence: true
+  validates :game_resource_id, presence: true
   validates :quantity, presence: true, numericality: { only_integer: true, greater_than: 0 }
 
-  validate :location_resource_must_exist
+  validate :game_resource_must_exist
   validate :must_have_enough_cash
   validate :must_have_inventory_space
   validate :must_have_enough_available_quantity
@@ -43,11 +43,11 @@ class BuyAction < GameAction
         raise ActiveRecord::Rollback
       end
 
-      # Decrement the available quantity at the location
-      location_resource.decrement!(:available_quantity, quantity)
+      # Decrement the available quantity
+      game_resource.decrement!(:available_quantity, quantity)
 
-      # Check for event effects
-      event_effects = EventEffectsService.new(game, location_resource).call
+      # Check for event effects (with current location for location bonuses)
+      event_effects = EventEffectsService.new(game, game_resource, location: game.current_location).call
       has_event_effects = event_effects[:price_multiplier] != 1.0
 
       # Create log message
@@ -72,16 +72,16 @@ class BuyAction < GameAction
 
   private
 
-  def location_resource
-    @location_resource ||= LocationResource.find_by(id: location_resource_id)
+  def game_resource
+    @game_resource ||= GameResource.find_by(id: game_resource_id)
   end
 
   def resource
-    @resource ||= location_resource&.resource
+    @resource ||= game_resource&.resource
   end
 
   def price_per_unit
-    @price_per_unit ||= location_resource&.current_price
+    @price_per_unit ||= game_resource&.current_price
   end
 
   def total_cost
@@ -89,11 +89,11 @@ class BuyAction < GameAction
     (price_per_unit * quantity).round(2)
   end
 
-  def location_resource_must_exist
-    return if location_resource_id.nil?
+  def game_resource_must_exist
+    return if game_resource_id.nil?
 
-    if location_resource.nil?
-      errors.add(:location_resource_id, "does not exist")
+    if game_resource.nil?
+      errors.add(:game_resource_id, "does not exist")
     end
   end
 
@@ -117,10 +117,10 @@ class BuyAction < GameAction
   end
 
   def must_have_enough_available_quantity
-    return if location_resource.nil? || quantity.nil?
+    return if game_resource.nil? || quantity.nil?
 
-    if location_resource.available_quantity < quantity
-      errors.add(:quantity, "insufficient stock (need #{quantity}, available #{location_resource.available_quantity})")
+    if game_resource.available_quantity < quantity
+      errors.add(:quantity, "insufficient stock (need #{quantity}, available #{game_resource.available_quantity})")
     end
   end
 end

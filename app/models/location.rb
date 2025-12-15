@@ -20,7 +20,6 @@ class Location < ApplicationRecord
   Gutentag::ActiveRecord.call self
 
   # Associations
-  has_many :location_resources, dependent: :destroy
   has_many :location_visits, dependent: :destroy
 
   # Validations

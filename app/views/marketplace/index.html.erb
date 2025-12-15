@@ -65,7 +65,7 @@
   <div class="Page__Content">
     <%= turbo_frame_tag "flash_messages" %>
 
-    <% if @location_resources.any? %>
+    <% if @game_resources.any? %>
       <table class="Table">
         <thead>
           <tr>
@@ -76,11 +76,12 @@
           </tr>
         </thead>
         <tbody>
-          <% @location_resources.each do |location_resource| %>
+          <% @game_resources.each do |game_resource| %>
             <%= render partial: "marketplace/resource_row",
                        locals: {
-                         location_resource: location_resource,
+                         game_resource: game_resource,
                          game: @game,
+                         location: @location,
                          inventory_by_resource: @inventory_by_resource
                        } %>
           <% end %>
@@ -88,7 +89,7 @@
       </table>
     <% else %>
       <div class="Alert Alert--info">
-        <p>No resources available at this location. Travel to discover new markets!</p>
+        <p>No resources available. Something went wrong with game initialization!</p>
       </div>
     <% end %>
   </div>
