@@ -383,7 +383,7 @@ class Game < ApplicationRecord
 
   def log_game_start
     event_logs.create!(
-      message: "Dazed and confused you wake up in #{current_location.name} with $#{cash.to_i} and a burning desire to arbitrage",
+      message: "Dazed and confused you wake up in #{current_location.name} with $#{cash.to_i} and a burning desire for arbitrage",
       loggable: current_location
     )
   end

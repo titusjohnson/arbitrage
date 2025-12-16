@@ -1,0 +1,68 @@
+<div class="page">
+  <h1 class="page__title">Global Leaderboard</h1>
+  <p class="page__subtitle">Top traders ranked by final score</p>
+
+  <% if @games.any? %>
+    <table class="leaderboard-table">
+      <thead>
+        <tr>
+          <th class="leaderboard-table__rank">Rank</th>
+          <th class="leaderboard-table__score">Score</th>
+          <th class="leaderboard-table__difficulty">Difficulty</th>
+          <th class="leaderboard-table__net-worth">Net Worth</th>
+          <th class="leaderboard-table__stats">Stats</th>
+          <th class="leaderboard-table__date">Completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @games.each_with_index do |game, index| %>
+          <tr class="leaderboard-table__row <%= 'leaderboard-table__row--top-3' if index < 3 %>">
+            <td class="leaderboard-table__rank">
+              <span class="leaderboard-rank leaderboard-rank--<%= index + 1 %>">
+                <% if index == 0 %>
+                  <span class="leaderboard-rank__medal">1</span>
+                <% elsif index == 1 %>
+                  <span class="leaderboard-rank__medal">2</span>
+                <% elsif index == 2 %>
+                  <span class="leaderboard-rank__medal">3</span>
+                <% else %>
+                  <%= index + 1 %>
+                <% end %>
+              </span>
+            </td>
+            <td class="leaderboard-table__score">
+              <span class="leaderboard-score"><%= game.final_score %></span>
+            </td>
+            <td class="leaderboard-table__difficulty">
+              <span class="difficulty-badge difficulty-badge--<%= game.difficulty %>">
+                <%= game.difficulty_display_name %>
+              </span>
+            </td>
+            <td class="leaderboard-table__net-worth">
+              $<%= number_with_delimiter(game.net_worth.to_i) %>
+            </td>
+            <td class="leaderboard-table__stats">
+              <span class="leaderboard-stat" title="Purchases">
+                <%= game.total_purchases %> buys
+              </span>
+              <span class="leaderboard-stat" title="Sales">
+                <%= game.total_sales %> sells
+              </span>
+              <span class="leaderboard-stat" title="Locations visited">
+                <%= game.locations_visited %> locations
+              </span>
+            </td>
+            <td class="leaderboard-table__date">
+              <%= game.completed_at&.strftime("%b %d, %Y") || "N/A" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="leaderboard-empty">
+      <p>No completed games yet. Be the first to make the leaderboard!</p>
+      <%= link_to "Start a New Game", new_game_path, class: "button" %>
+    </div>
+  <% end %>
+</div>

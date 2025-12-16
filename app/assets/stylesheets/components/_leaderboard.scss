@@ -1,0 +1,191 @@
+// ============================================
+// Leaderboard Block (BEM)
+// ============================================
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: $color-bg-content;
+    border: 2px solid $color-border;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.15);
+
+    th,
+    td {
+        padding: 0.5rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid $color-border-light;
+    }
+
+    th {
+        background: linear-gradient(to bottom, #f0f0f0, #ddd);
+        border-bottom: 2px solid $color-border;
+        font-weight: bold;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #555;
+    }
+
+    &__row {
+        &:hover {
+            background: #f5f5f5;
+        }
+
+        &--top-3 {
+            background: #fffef0;
+
+            &:hover {
+                background: #fff8d0;
+            }
+        }
+    }
+
+    &__rank {
+        width: 60px;
+        text-align: center;
+    }
+
+    &__score {
+        width: 80px;
+        text-align: center;
+    }
+
+    &__difficulty {
+        width: 120px;
+    }
+
+    &__net-worth {
+        width: 140px;
+        font-family: monospace;
+        font-weight: bold;
+    }
+
+    &__stats {
+        font-size: 0.7rem;
+        color: #666;
+    }
+
+    &__date {
+        width: 120px;
+        font-size: 0.75rem;
+        color: #666;
+    }
+}
+
+// Rank display
+.leaderboard-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    font-weight: bold;
+    font-size: 0.85rem;
+
+    &--1 {
+        .leaderboard-rank__medal {
+            background: linear-gradient(to bottom, #ffd700, #c9a200);
+            color: #5c4a00;
+            border-color: #b8960a;
+        }
+    }
+
+    &--2 {
+        .leaderboard-rank__medal {
+            background: linear-gradient(to bottom, #e0e0e0, #a8a8a8);
+            color: #444;
+            border-color: #888;
+        }
+    }
+
+    &--3 {
+        .leaderboard-rank__medal {
+            background: linear-gradient(to bottom, #cd7f32, #8b4513);
+            color: #fff;
+            border-color: #6b3a0a;
+        }
+    }
+
+    &__medal {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 2px solid;
+        font-weight: bold;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+// Score display
+.leaderboard-score {
+    display: inline-block;
+    background: linear-gradient(to bottom, #4a90e2, #357abd);
+    color: #fff;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+// Stats display
+.leaderboard-stat {
+    display: inline-block;
+    margin-right: 0.5rem;
+
+    &::after {
+        content: "|";
+        margin-left: 0.5rem;
+        color: #ccc;
+    }
+
+    &:last-child::after {
+        content: none;
+    }
+}
+
+// Difficulty badge
+.difficulty-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+
+    &--street_peddler {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    &--antique_dealer {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    &--tycoon {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+}
+
+// Empty state
+.leaderboard-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: $color-bg-content;
+    border: 2px solid $color-border;
+
+    p {
+        margin-bottom: 1rem;
+        color: #666;
+    }
+}

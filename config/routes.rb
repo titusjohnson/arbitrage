@@ -78,4 +78,7 @@ Rails.application.routes.draw do
       post :collect
     end
   end
+
+  # Leaderboard
+  get "leaderboard", to: "leaderboard#index"
 end

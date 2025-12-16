@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Resources" %></title>
+    <title><%= content_for(:title) || "Arbitrage" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -26,7 +26,7 @@
     <header class="header">
       <div class="header__container">
         <div class="header__brand">
-          <%= link_to "Resources", root_path, class: "header__brand-link" %>
+          <%= link_to "Arbitrage", root_path, class: "header__brand-link" %>
           <% if current_game %>
             <div class="header__location">
               <%= current_game.current_location.name %>
@@ -45,6 +45,17 @@
     <main class="main">
       <%= yield %>
     </main>
+
+    <footer class="footer">
+      <div class="footer__container">
+        <div class="footer__links">
+          <%= link_to "Leaderboard", leaderboard_path, class: "footer__link" %>
+        </div>
+        <div class="footer__copyright">
+          Arbitrage &copy; <%= Time.current.year %>
+        </div>
+      </div>
+    </footer>
 
     <%= render layout: "shared/toast_container" do %>
       <%= render "shared/flash_toasts" %>
