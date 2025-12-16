@@ -1,0 +1,89 @@
+// ============================================
+// Form Block (BEM) - Classic Mid-2000s Forms
+// ============================================
+
+.form {
+    // Form modifier for narrow forms (login, etc.)
+    &--narrow {
+        max-width: 20rem;
+    }
+
+    &__field {
+        margin-bottom: 15px;
+    }
+
+    &__label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 4px;
+        color: $color-text;
+    }
+
+    &__input {
+        width: 100%;
+        padding: 4px 6px;
+        font-family: $font-family-base;
+        font-size: $font-size-base;
+        color: $color-text;
+        background-color: #fff;
+        border: 1px solid $color-border;
+        border-radius: 2px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;
+
+        &:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.1) inset,
+                0 0 4px rgba(74, 144, 226, 0.4);
+        }
+    }
+
+    &__textarea {
+        @extend .form__input;
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    &__select {
+        padding: 4px;
+        font-family: $font-family-base;
+        font-size: $font-size-base;
+        color: $color-text;
+        background-color: #fff;
+        border: 1px solid $color-border;
+        border-radius: 2px;
+    }
+
+    &__checkbox,
+    &__radio {
+        margin-right: 6px;
+    }
+}
+
+// ============================================
+// Input type styles (for Rails form helpers)
+// ============================================
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"] {
+    @extend .form__input;
+}
+
+textarea {
+    @extend .form__textarea;
+}
+
+select {
+    @extend .form__select;
+}
+
+input[type="submit"] {
+    @extend .button;
+    @extend .button--primary;
+}

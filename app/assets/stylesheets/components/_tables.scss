@@ -1,0 +1,137 @@
+// ============================================
+// Table Block (BEM) - Collapsed Borders
+// ============================================
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+
+    &__header {
+        background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+        font-weight: bold;
+    }
+
+    &__cell {
+        padding: 6px 8px;
+        border: 1px solid $color-border;
+        text-align: left;
+    }
+
+    &__row {
+        &:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        &:hover {
+            background-color: #ffffcc;
+        }
+    }
+}
+
+// ============================================
+// Table Component (used in marketplace)
+// ============================================
+
+.Table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+
+    thead {
+        background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+        font-weight: bold;
+
+        th {
+            padding: 6px 8px;
+            border: 1px solid $color-border;
+            text-align: left;
+        }
+    }
+
+    tbody {
+        tr {
+            &:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+
+            &:hover {
+                background-color: #ffffcc;
+            }
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid $color-border;
+            text-align: left;
+        }
+    }
+
+    &__Cell--right {
+        text-align: right;
+    }
+
+    // Actions column needs more space and white-space control
+    td.Table__Cell--right:last-child {
+        white-space: nowrap;
+        min-width: 140px;
+
+        form {
+            display: inline-block;
+            margin: 0;
+        }
+    }
+}
+
+// ============================================
+// Prices Table (for modal)
+// ============================================
+
+.prices-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+
+    thead {
+        background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+        font-weight: bold;
+
+        th {
+            padding: 8px;
+            border: 1px solid $color-border;
+            text-align: left;
+        }
+    }
+
+    tbody {
+        tr {
+            &:nth-child(even) {
+                background-color: #f9f9f9;
+            }
+
+            &:hover {
+                background-color: #ffffcc;
+            }
+        }
+
+        td {
+            padding: 6px 8px;
+            border: 1px solid $color-border-light;
+        }
+    }
+
+    &__name {
+        font-weight: normal;
+    }
+
+    &__price {
+        text-align: right;
+        font-family: monospace;
+        white-space: nowrap;
+    }
+
+    &__available {
+        text-align: center;
+        color: #666;
+    }
+}

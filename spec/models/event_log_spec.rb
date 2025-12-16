@@ -3,6 +3,7 @@
 # Table name: event_logs
 #
 #  id            :integer          not null, primary key
+#  game_day      :integer
 #  loggable_type :string
 #  message       :text             not null
 #  read_at       :datetime

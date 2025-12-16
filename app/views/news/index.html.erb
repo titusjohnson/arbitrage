@@ -5,48 +5,115 @@
   </div>
 
   <div class="Page__Content">
-    <!-- Tabbed Filters -->
-    <div class="tabs">
-      <div class="tabs__list">
-        <%= link_to "All News", news_path(days_back: @days_back),
-            class: "tabs__tab #{@current_filter.nil? ? 'tabs__tab--active' : ''}" %>
-        <%= link_to "World Events", news_path(type: 'event', days_back: @days_back),
-            class: "tabs__tab #{@current_filter == 'event' ? 'tabs__tab--active' : ''}" %>
-        <%= link_to "Market Reports", news_path(type: 'market', days_back: @days_back),
-            class: "tabs__tab #{@current_filter == 'market' ? 'tabs__tab--active' : ''}" %>
-        <%= link_to "My Trades", news_path(type: 'action', days_back: @days_back),
-            class: "tabs__tab #{@current_filter == 'action' ? 'tabs__tab--active' : ''}" %>
-        <%= link_to "Trends", news_path(type: 'trend', days_back: @days_back),
-            class: "tabs__tab #{@current_filter == 'trend' ? 'tabs__tab--active' : ''}" %>
-      </div>
-      <div class="tabs__content">
-        <!-- News Feed -->
-        <div class="newsfeed">
-      <% if @news_feed.any? %>
-        <% @news_feed.group_by(&:game_day).sort.reverse.each do |day, items| %>
-          <section class="newsfeed__day">
-            <h2 class="newsfeed__day-header">
-              <% if day.nil? %>
-                Day <%= current_game.current_day %>
-              <% elsif day == 0 %>
-                Arrival Day
-              <% elsif day < 0 %>
-                <%= day.abs %> <%= 'day'.pluralize(day.abs) %> before arrival
-              <% else %>
-                Day <%= day %>
-              <% end %>
-            </h2>
+    <div class="news-layout">
+      <!-- Main Content (2/3) -->
+      <div class="news-layout__main">
+        <!-- Tabbed Filters -->
+        <div class="tabs">
+          <div class="tabs__list">
+            <%= link_to "All News", news_path(days_back: @days_back),
+                class: "tabs__tab #{@current_filter.nil? ? 'tabs__tab--active' : ''}" %>
+            <%= link_to "World Events", news_path(type: 'event', days_back: @days_back),
+                class: "tabs__tab #{@current_filter == 'event' ? 'tabs__tab--active' : ''}" %>
+            <%= link_to "Market Reports", news_path(type: 'market', days_back: @days_back),
+                class: "tabs__tab #{@current_filter == 'market' ? 'tabs__tab--active' : ''}" %>
+            <%= link_to "My Trades", news_path(type: 'action', days_back: @days_back),
+                class: "tabs__tab #{@current_filter == 'action' ? 'tabs__tab--active' : ''}" %>
+            <%= link_to "Trends", news_path(type: 'trend', days_back: @days_back),
+                class: "tabs__tab #{@current_filter == 'trend' ? 'tabs__tab--active' : ''}" %>
+          </div>
+          <div class="tabs__content">
+            <!-- News Feed -->
+            <div class="newsfeed">
+              <% if @news_feed.any? %>
+                <% @news_feed.group_by(&:game_day).sort.reverse.each do |day, items| %>
+                  <section class="newsfeed__day">
+                    <h2 class="newsfeed__day-header">
+                      <% if day.nil? %>
+                        Day <%= current_game.current_day %>
+                      <% elsif day == 0 %>
+                        Arrival Day
+                      <% elsif day < 0 %>
+                        <%= day.abs %> <%= 'day'.pluralize(day.abs) %> before arrival
+                      <% else %>
+                        Day <%= day %>
+                      <% end %>
+                    </h2>
 
-            <% items.each do |news_item| %>
-              <%= render partial: "news/news_item", locals: { item: news_item } %>
-            <% end %>
-          </section>
-        <% end %>
-      <% else %>
-        <div class="Alert Alert--info">
-          <p>No news to report for the selected filters.</p>
+                    <% items.each do |news_item| %>
+                      <%= render partial: "news/news_item", locals: { item: news_item } %>
+                    <% end %>
+                  </section>
+                <% end %>
+              <% else %>
+                <div class="Alert Alert--info">
+                  <p>No news to report for the selected filters.</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
         </div>
-      <% end %>
+      </div>
+
+      <!-- Sidebar (1/3) -->
+      <div class="news-layout__sidebar">
+        <!-- Inventory Opportunities -->
+        <div class="info-box">
+          <h3 class="info-box__title">Your Inventory Here</h3>
+          <% if @inventory_opportunities.any? %>
+            <ul class="info-box__list">
+              <% @inventory_opportunities.each do |opp| %>
+                <li class="info-box__item">
+                  <div class="info-box__item-header">
+                    <span class="info-box__item-name"><%= opp[:resource].name %></span>
+                    <span class="info-box__item-qty">x<%= opp[:quantity] %></span>
+                  </div>
+                  <div class="info-box__item-details">
+                    <span class="info-box__item-price">
+                      Paid: $<%= number_with_delimiter(opp[:avg_purchase_price]) %>
+                    </span>
+                    <span class="info-box__item-arrow">&rarr;</span>
+                    <span class="info-box__item-price">
+                      Now: $<%= number_with_delimiter(opp[:current_price]) %>
+                    </span>
+                  </div>
+                  <div class="info-box__item-change <%= opp[:percent_diff] >= 0 ? 'info-box__item-change--positive' : 'info-box__item-change--negative' %>">
+                    <%= opp[:percent_diff] >= 0 ? '+' : '' %><%= opp[:percent_diff] %>%
+                    (<%= opp[:price_diff] >= 0 ? '+' : '' %>$<%= number_with_delimiter(opp[:price_diff].abs) %>)
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="info-box__empty">No inventory items available at this location.</p>
+          <% end %>
+        </div>
+
+        <!-- Top Movers -->
+        <div class="info-box">
+          <h3 class="info-box__title">Today's Top Movers</h3>
+          <% if @top_movers.any? %>
+            <ul class="info-box__list">
+              <% @top_movers.each do |mover| %>
+                <li class="info-box__item info-box__item--compact">
+                  <div class="info-box__item-header">
+                    <span class="info-box__item-name"><%= mover[:resource].name %></span>
+                    <span class="info-box__item-change <%= mover[:direction] == :up ? 'info-box__item-change--positive' : 'info-box__item-change--negative' %>">
+                      <%= mover[:direction] == :up ? '▲' : '▼' %>
+                      <%= mover[:change_percent].abs %>%
+                    </span>
+                  </div>
+                  <div class="info-box__item-details">
+                    <span class="info-box__item-price Text--muted">
+                      $<%= number_with_delimiter(mover[:old_price]) %> &rarr; $<%= number_with_delimiter(mover[:new_price]) %>
+                    </span>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="info-box__empty">No price changes recorded today.</p>
+          <% end %>
         </div>
       </div>
     </div>

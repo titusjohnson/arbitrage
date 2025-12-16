@@ -26,16 +26,16 @@
           </div>
           <div class="difficulty-card__stat">
             <span class="difficulty-card__stat-label">Wealth Target</span>
-            <span class="difficulty-card__stat-value"><%= number_to_currency(config[:wealth_target], precision: 0) %></span>
+            <span class="difficulty-card__stat-value"><%= compact_currency(config[:wealth_target]) %></span>
           </div>
           <div class="difficulty-card__stat">
             <span class="difficulty-card__stat-label">Time Limit</span>
-            <span class="difficulty-card__stat-value"><%= pluralize(config[:day_target], 'day') %></span>
+            <span class="difficulty-card__stat-value"><%= config[:day_target] %><br>days</span>
           </div>
         </div>
 
         <div class="difficulty-card__multiplier">
-          <%= number_to_currency(config[:wealth_target], precision: 0) %> / <%= number_to_currency(config[:starting_cash], precision: 0) %> = <strong><%= (config[:wealth_target].to_f / config[:starting_cash]).round(0) %>x</strong> return required
+          <%= compact_currency(config[:wealth_target]) %> / <%= compact_currency(config[:starting_cash]) %> = <strong><%= (config[:wealth_target].to_f / config[:starting_cash]).round(0) %>x</strong> return required
         </div>
       <% end %>
     <% end %>

@@ -110,10 +110,11 @@ RSpec.describe NewsService do
     end
 
     it 'respects days_back parameter' do
-      # Create old event log outside the window
-      create(:event_log, game: game, message: "Very old action", created_at: 10.days.ago)
-      # Create recent event log within the window
-      create(:event_log, game: game, message: "Recent action", created_at: 2.days.ago)
+      # Game is at day 10, days_back: 7 means cutoff at day 3
+      # Create old event log outside the window (day 2 is before cutoff)
+      create(:event_log, game: game, message: "Very old action", game_day: 2)
+      # Create recent event log within the window (day 8 is after cutoff)
+      create(:event_log, game: game, message: "Recent action", game_day: 8)
 
       service = NewsService.new(game, days_back: 7)
       feed = service.unified_feed

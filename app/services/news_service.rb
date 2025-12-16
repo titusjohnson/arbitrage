@@ -42,47 +42,47 @@ class NewsService
     @cutoff_date ||= days_back.days.ago
   end
 
-  # Fetch event news (active and recently expired events)
+  # Fetch event news (all events within the lookback window)
   def event_news
     items = []
+    cutoff_day = current_day - days_back
 
-    # Active events
-    game.game_events.active.includes(:event).each do |game_event|
-      event = game_event.event
-      days_elapsed = event.duration - game_event.days_remaining + 1
-
-      items << NewsItemPresenter.new(
-        headline: "#{event.name} - Day #{days_elapsed} of #{event.duration}",
-        body: event.description,
-        timestamp: game_event.created_at,
-        news_type: 'event',
-        severity: event.severity || 3,
-        metadata: {
-          event_type: event.event_type,
-          days_remaining: game_event.days_remaining,
-          affected_tags: extract_affected_tags(event)
-        },
-        game_day: game_event.day_triggered
-      )
-    end
-
-    # Recently expired events
-    game.game_events
-        .expired
-        .where("updated_at > ?", cutoff_date)
-        .includes(:event)
-        .each do |game_event|
+    game.game_events.includes(:event).each do |game_event|
       event = game_event.event
 
-      items << NewsItemPresenter.new(
-        headline: "#{event.name} has ended",
-        body: "The #{event.event_type} event has concluded. Markets return to normal.",
-        timestamp: game_event.updated_at,
-        news_type: 'event',
-        severity: 2,
-        metadata: { event_type: event.event_type },
-        game_day: calculate_game_day(game_event.updated_at)
-      )
+      # Skip events that started before our lookback window
+      next if game_event.day_triggered < cutoff_day
+
+      if game_event.active?
+        days_elapsed = event.duration - game_event.days_remaining + 1
+
+        items << NewsItemPresenter.new(
+          headline: "#{event.name} - Day #{days_elapsed} of #{event.duration}",
+          body: event.description,
+          timestamp: game_event.created_at,
+          news_type: 'event',
+          severity: event.severity || 3,
+          metadata: {
+            event_type: event.event_type,
+            days_remaining: game_event.days_remaining,
+            affected_tags: extract_affected_tags(event)
+          },
+          game_day: game_event.day_triggered
+        )
+      else
+        # Expired event
+        end_day = game_event.day_triggered + event.duration
+
+        items << NewsItemPresenter.new(
+          headline: "#{event.name} has ended",
+          body: "The #{event.event_type} event has concluded. Markets return to normal.",
+          timestamp: game_event.updated_at,
+          news_type: 'event',
+          severity: 2,
+          metadata: { event_type: event.event_type },
+          game_day: end_day
+        )
+      end
     end
 
     items
@@ -160,27 +160,29 @@ class NewsService
   end
 
   # Fetch player action news from EventLog
-  # Aggregates similar purchases/sales on the same day
+  # Aggregates similar purchases/sales on the same game day
   def action_news
     items = []
+    cutoff_day = current_day - days_back
+
     logs = game.event_logs
-               .where("created_at > ?", cutoff_date)
+               .where("game_day >= ? OR game_day IS NULL", cutoff_day)
                .order(created_at: :desc)
 
-    # Group logs by date and action type for aggregation
-    logs_by_date = logs.group_by { |log| log.created_at.to_date }
+    # Group logs by game_day for aggregation
+    logs_by_day = logs.group_by { |log| log.game_day || calculate_game_day(log.created_at) }
 
-    logs_by_date.each do |date, day_logs|
+    logs_by_day.each do |day, day_logs|
       # Separate purchases, sales, and other actions
       purchases = day_logs.select { |log| log.message.start_with?('Purchased') }
       sales = day_logs.select { |log| log.message.start_with?('Sold') }
       others = day_logs.reject { |log| log.message.start_with?('Purchased', 'Sold') }
 
       # Aggregate purchases by resource
-      aggregate_transactions(purchases, 'Purchased', date).each { |item| items << item }
+      aggregate_transactions(purchases, 'Purchased', day).each { |item| items << item }
 
       # Aggregate sales by resource
-      aggregate_transactions(sales, 'Sold', date).each { |item| items << item }
+      aggregate_transactions(sales, 'Sold', day).each { |item| items << item }
 
       # Add non-transaction logs as-is
       others.each do |log|
@@ -194,7 +196,7 @@ class NewsService
             loggable_type: log.loggable_type,
             loggable_id: log.loggable_id
           },
-          game_day: calculate_game_day(log.created_at)
+          game_day: log.game_day || calculate_game_day(log.created_at)
         )
       end
     end
@@ -202,8 +204,8 @@ class NewsService
     items
   end
 
-  # Aggregate similar transactions (purchases or sales) on the same day
-  def aggregate_transactions(logs, action_type, date)
+  # Aggregate similar transactions (purchases or sales) on the same game day
+  def aggregate_transactions(logs, action_type, game_day)
     items = []
 
     # Group by resource and price
@@ -235,7 +237,7 @@ class NewsService
             loggable_type: log.loggable_type,
             loggable_id: log.loggable_id
           },
-          game_day: calculate_game_day(log.created_at)
+          game_day: game_day
         )
       else
         # Multiple similar transactions, aggregate them
@@ -271,7 +273,7 @@ class NewsService
               loggable_id: log.loggable_id,
               aggregated_count: transaction_logs.length
             },
-            game_day: calculate_game_day(log.created_at)
+            game_day: game_day
           )
         else
           # Fallback: show individually if we can't parse
@@ -286,7 +288,7 @@ class NewsService
                 loggable_type: tlog.loggable_type,
                 loggable_id: tlog.loggable_id
               },
-              game_day: calculate_game_day(tlog.created_at)
+              game_day: game_day
             )
           end
         end

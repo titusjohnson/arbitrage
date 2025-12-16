@@ -47,7 +47,8 @@ class GameAction
   def create_log(loggable, message)
     @log = game.event_logs.create!(
       message: message,
-      loggable: loggable
+      loggable: loggable,
+      game_day: game.current_day
     )
   end
 

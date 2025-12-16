@@ -46,9 +46,7 @@ class Game < ApplicationRecord
   # Enums
   enum :difficulty, {
     street_peddler: "street_peddler",
-    flea_market_flipper: "flea_market_flipper",
     antique_dealer: "antique_dealer",
-    commodities_broker: "commodities_broker",
     tycoon: "tycoon"
   }
 

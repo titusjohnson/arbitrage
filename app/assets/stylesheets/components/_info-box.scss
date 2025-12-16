@@ -1,0 +1,142 @@
+// ============================================
+// Info Box Block (BEM) - Mid-2000s Style
+// ============================================
+
+.info-box {
+    background: linear-gradient(to bottom, #fafafa 0%, #f0f0f0 100%);
+    border: 1px solid $color-border;
+    border-radius: 4px;
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+
+    &__title {
+        margin: 0;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: bold;
+        color: #555;
+        background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
+        border-bottom: 1px solid $color-border;
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    &__item {
+        padding: 10px 12px;
+        border-bottom: 1px solid $color-border-light;
+
+        &:last-child {
+            border-bottom: none;
+        }
+
+        &:nth-child(even) {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        &:hover {
+            background: #ffffcc;
+        }
+
+        &--compact {
+            padding: 8px 12px;
+        }
+    }
+
+    &__item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    &__item-name {
+        font-weight: bold;
+        font-size: 12px;
+        color: $color-text;
+    }
+
+    &__item-qty {
+        font-size: 11px;
+        color: #666;
+        background: #e0e0e0;
+        padding: 1px 6px;
+        border-radius: 8px;
+    }
+
+    &__item-details {
+        font-size: 11px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__item-price {
+        // Default styling
+    }
+
+    &__item-arrow {
+        color: #999;
+    }
+
+    &__item-change {
+        font-size: 11px;
+        font-weight: bold;
+        margin-top: 4px;
+
+        &--positive {
+            color: #2e7d32;
+        }
+
+        &--negative {
+            color: #c62828;
+        }
+    }
+
+    &__empty {
+        padding: 16px 12px;
+        margin: 0;
+        font-size: 12px;
+        color: #888;
+        font-style: italic;
+        text-align: center;
+    }
+}
+
+// ============================================
+// News Layout (Two Column)
+// ============================================
+
+.news-layout {
+    display: flex;
+    gap: 1.5rem;
+
+    &__main {
+        flex: 2;
+        min-width: 0; // Prevent flex overflow
+    }
+
+    &__sidebar {
+        flex: 1;
+        min-width: 280px;
+        max-width: 350px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    // Stack on smaller screens
+    @media (max-width: 900px) {
+        flex-direction: column;
+
+        &__sidebar {
+            max-width: none;
+        }
+    }
+}

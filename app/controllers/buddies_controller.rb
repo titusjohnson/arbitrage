@@ -24,7 +24,7 @@ class BuddiesController < ApplicationController
         format.turbo_stream {
           render turbo_stream: [
             turbo_stream.prepend("buddies-here", partial: "buddies/buddy_card", locals: { buddy: @buddy, at_buddy_location: true }),
-            turbo_stream.replace("game-stats", partial: "shared/game_stats", locals: { game: current_game }),
+            turbo_stream.replace("game_stats", partial: "shared/game_stats", locals: { game: current_game }),
             turbo_stream.append("toast-container", partial: "shared/toast", locals: { message: "Hired #{@buddy.name} for $100!", type: "success" })
           ]
         }
@@ -50,7 +50,7 @@ class BuddiesController < ApplicationController
         format.turbo_stream {
           render turbo_stream: [
             turbo_stream.replace(dom_id(@buddy), partial: "buddies/buddy_card", locals: { buddy: @buddy, at_buddy_location: true }),
-            turbo_stream.replace("game-stats", partial: "shared/game_stats", locals: { game: current_game }),
+            turbo_stream.replace("game_stats", partial: "shared/game_stats", locals: { game: current_game }),
             turbo_stream.append("toast-container", partial: "shared/toast", locals: { message: "Gave #{@buddy.resource.name} to #{@buddy.name}!", type: "success" })
           ]
         }
@@ -77,7 +77,7 @@ class BuddiesController < ApplicationController
         format.turbo_stream {
           render turbo_stream: [
             turbo_stream.replace(dom_id(@buddy), partial: "buddies/buddy_card", locals: { buddy: @buddy, at_buddy_location: true }),
-            turbo_stream.replace("game-stats", partial: "shared/game_stats", locals: { game: current_game }),
+            turbo_stream.replace("game_stats", partial: "shared/game_stats", locals: { game: current_game }),
             turbo_stream.append("toast-container", partial: "shared/toast", locals: { message: "Collected $#{total.round(2)} from #{@buddy.name}!", type: "success" })
           ]
         }

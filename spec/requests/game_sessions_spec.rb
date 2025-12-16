@@ -21,13 +21,11 @@ RSpec.describe "GameSessions", type: :request do
         expect(response.body).to include("Choose Your Difficulty")
       end
 
-      it "displays all five difficulty levels" do
+      it "displays all three difficulty levels" do
         get new_game_path
 
         expect(response.body).to include("Street Peddler")
-        expect(response.body).to include("Flea Market Flipper")
         expect(response.body).to include("Antique Dealer")
-        expect(response.body).to include("Commodities Broker")
         expect(response.body).to include("Tycoon")
       end
     end

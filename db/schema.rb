@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_15_054707) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_16_001613) do
   create_table "buddies", force: :cascade do |t|
     t.integer "game_id", null: false
     t.integer "location_id", null: false
@@ -41,6 +41,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_15_054707) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "read_at"
+    t.integer "game_day"
     t.index ["game_id", "created_at"], name: "index_event_logs_on_game_id_and_created_at"
     t.index ["game_id", "read_at"], name: "index_event_logs_on_game_id_and_read_at"
     t.index ["game_id"], name: "index_event_logs_on_game_id"

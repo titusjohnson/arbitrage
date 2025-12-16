@@ -49,7 +49,7 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  root "marketplace#index"
+  root "news#index"
 
   # Game management
   get "game/new", to: "games#new", as: :new_game

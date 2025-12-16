@@ -1,0 +1,298 @@
+// ============================================
+// Difficulty Selection Block (BEM)
+// ============================================
+
+.difficulty-selection {
+    text-align: center;
+    padding: 20px 0;
+
+    &__title {
+        font-size: 24px;
+        margin-bottom: 10px;
+        color: $color-text;
+    }
+
+    &__intro {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+}
+
+// The form wrapper from button_to
+.difficulty-card-form {
+    display: block;
+}
+
+.difficulty-card {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to bottom, #fafafa 0%, #e8e8e8 100%);
+    border: 2px solid $color-border;
+    border-radius: 6px;
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    color: $color-text;
+    text-align: left;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-family: $font-family-base;
+    font-size: $font-size-base;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow:
+            0 4px 8px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        border-color: #666;
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.2),
+            inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid $color-border-light;
+    }
+
+    &__name {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+        color: $color-text;
+    }
+
+    &__level {
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #888;
+        background: #e0e0e0;
+        padding: 3px 8px;
+        border-radius: 10px;
+    }
+
+    &__description {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 16px;
+        line-height: 1.5;
+        min-height: 40px;
+    }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    &__stat {
+        text-align: center;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid $color-border-light;
+        border-radius: 3px;
+    }
+
+    &__stat-label {
+        display: block;
+        font-size: 10px;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 4px;
+    }
+
+    &__stat-value {
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+        color: $color-text;
+    }
+
+    &__multiplier {
+        font-size: 11px;
+        color: #888;
+        text-align: center;
+        padding-top: 10px;
+        border-top: 1px solid $color-border-light;
+
+        strong {
+            color: $color-text;
+        }
+    }
+
+    // Loading state
+    &--loading {
+        position: relative;
+        pointer-events: none;
+
+        // Fade the card content
+        > *:not(.difficulty-card__loading-overlay) {
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+    }
+
+    &--faded {
+        opacity: 0.3;
+        pointer-events: none;
+        transform: scale(0.98);
+        transition: all 0.3s ease;
+    }
+
+    &__loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 4px;
+        z-index: 10;
+    }
+
+    // Difficulty-specific color accents
+    &--street_peddler {
+        border-left: 4px solid #4caf50;
+
+        .difficulty-card__level {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    }
+
+    &--antique_dealer {
+        border-left: 4px solid #ff9800;
+
+        .difficulty-card__level {
+            background: #fff3e0;
+            color: #e65100;
+        }
+    }
+
+    &--tycoon {
+        border-left: 4px solid #f44336;
+
+        .difficulty-card__level {
+            background: #ffebee;
+            color: #c62828;
+        }
+    }
+}
+
+// ============================================
+// Loading Drops Animation (Liquid Bounce)
+// ============================================
+
+.loading-drops {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+    height: 40px;
+
+    &__drop {
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(
+            135deg,
+            #4a90e2 0%,
+            #2e5c8a 50%,
+            #1a3a5c 100%
+        );
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        box-shadow:
+            0 2px 4px rgba(0, 0, 0, 0.3),
+            inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+            inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        animation: liquid-bounce 1.4s ease-in-out infinite;
+        transform-origin: center bottom;
+
+        &:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        &:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    }
+
+    &__text {
+        font-size: 13px;
+        font-weight: bold;
+        color: #555;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+}
+
+@keyframes liquid-bounce {
+    0%,
+    100% {
+        transform: scaleY(1) scaleX(1) translateY(0);
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+
+    // Squish at bottom
+    15% {
+        transform: scaleY(0.6) scaleX(1.3) translateY(0);
+        border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%;
+    }
+
+    // Stretch upward
+    30% {
+        transform: scaleY(1.2) scaleX(0.85) translateY(-20px);
+        border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+    }
+
+    // Peak - rounder at top
+    45% {
+        transform: scaleY(1.1) scaleX(0.9) translateY(-28px);
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    }
+
+    // Coming down
+    60% {
+        transform: scaleY(1.15) scaleX(0.88) translateY(-15px);
+        border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    }
+
+    // Landing squish
+    75% {
+        transform: scaleY(0.7) scaleX(1.2) translateY(0);
+        border-radius: 50% 50% 50% 50% / 35% 35% 65% 65%;
+    }
+
+    // Bounce recovery
+    85% {
+        transform: scaleY(1.05) scaleX(0.95) translateY(-5px);
+        border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+    }
+}

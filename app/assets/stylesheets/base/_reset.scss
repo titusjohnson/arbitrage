@@ -1,0 +1,72 @@
+// ============================================
+// Reset & Base Styles
+// ============================================
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: $font-family-base;
+    font-size: $font-size-base;
+    color: $color-text;
+    background-color: $color-bg-page;
+    line-height: 1.4;
+}
+
+// ============================================
+// Typography
+// ============================================
+
+h1 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: $color-text;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: $color-text;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: $color-text;
+}
+
+p {
+    margin-bottom: 12px;
+}
+
+a {
+    color: $color-link;
+    text-decoration: underline;
+
+    &:visited {
+        color: $color-link-visited;
+    }
+
+    &:hover {
+        color: $color-link-hover;
+    }
+}
+
+// ============================================
+// Main Content Block (BEM)
+// ============================================
+
+.main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: $color-bg-content;
+    border: 1px solid $color-border-light;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

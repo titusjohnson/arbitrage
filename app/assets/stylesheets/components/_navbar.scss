@@ -1,0 +1,65 @@
+// ============================================
+// Navbar Block (BEM)
+// ============================================
+
+.navbar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+
+    &__item {
+        position: relative; // For badge positioning
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 16px;
+        text-decoration: none;
+        color: $color-text;
+        background: linear-gradient(to bottom, #fafafa 0%, #e0e0e0 100%);
+        border: 1px solid #999;
+        border-radius: 3px;
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.5) inset,
+            0 1px 2px rgba(0, 0, 0, 0.2);
+
+        &:hover {
+            background: linear-gradient(to bottom, #ffffff 0%, #e8e8e8 100%);
+            border-color: #666;
+            color: $color-link-hover;
+        }
+
+        &:active {
+            background: linear-gradient(to bottom, #d0d0d0 0%, #e8e8e8 100%);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.2) inset,
+                0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    &__icon {
+        width: 24px;
+        height: 24px;
+        color: $color-text;
+    }
+
+    &__label {
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    &__badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: #e74c3c;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+        line-height: 1.2;
+    }
+}

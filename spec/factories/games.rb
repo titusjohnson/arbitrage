@@ -81,25 +81,11 @@ FactoryBot.define do
       day_target { 30 }
     end
 
-    trait :flea_market_flipper do
-      difficulty { "flea_market_flipper" }
-      cash { 15_000 }
-      wealth_target { 100_000 }
-      day_target { 90 }
-    end
-
     trait :antique_dealer do
       difficulty { "antique_dealer" }
       cash { 35_000 }
       wealth_target { 500_000 }
       day_target { 180 }
-    end
-
-    trait :commodities_broker do
-      difficulty { "commodities_broker" }
-      cash { 75_000 }
-      wealth_target { 2_500_000 }
-      day_target { 270 }
     end
 
     trait :tycoon do

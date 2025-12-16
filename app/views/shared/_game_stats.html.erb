@@ -1,5 +1,5 @@
-<div id="game_stats">
-  <span class="header__cash">Cash: $<%= number_with_delimiter(game.cash.to_i) %></span>
-  <span class="header__cash">Inventory: $<%= number_with_delimiter(game.inventory_value.to_i) %></span>
-  <span class="header__welcome">Day <%= game.current_day %></span>
+<div id="game_stats" class="game-stats">
+  <div class="game-stats__item">Cash: $<%= number_with_delimiter(game.cash.to_i) %></div>
+  <div class="game-stats__item">Inventory: $<%= number_with_delimiter(game.inventory_value.to_i) %></div>
+  <div class="game-stats__item">Day <%= game.current_day %></div>
 </div>

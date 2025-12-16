@@ -20,7 +20,7 @@
           <% end %>
         <% else %>
           <div class="Alert Alert--info">
-            No buddies here yet. Hire one for $100 to get started!
+            No buddies here yet. Might have to pay for friendship.
           </div>
         <% end %>
       </div>
@@ -34,19 +34,6 @@
             <%= render "buddy_card", buddy: buddy, at_buddy_location: false %>
           <% end %>
         </div>
-      </div>
-    <% end %>
-
-    <% if @buddies.empty? %>
-      <div class="Alert Alert--info">
-        <p><strong>How Buddies Work:</strong></p>
-        <ul>
-          <li>Hire a buddy for $100 at any location</li>
-          <li>Give them resources from your inventory</li>
-          <li>Set a target profit percentage (e.g., +25%)</li>
-          <li>They'll watch the local market and auto-sell when the target is hit</li>
-          <li>Return to collect your profits!</li>
-        </ul>
       </div>
     <% end %>
   </div>
