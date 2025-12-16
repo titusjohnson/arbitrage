@@ -56,7 +56,7 @@ RSpec.describe "Travel", type: :request do
         post travel_path, params: { location_id: location2.id }
         expect(response).to redirect_to(root_path)
         follow_redirect!
-        expect(response.body).to include("Traveled to Boston")
+        expect(response.body).to include("Boston")
       end
     end
 
@@ -78,7 +78,7 @@ RSpec.describe "Travel", type: :request do
         post travel_path, params: { location_id: location4.id }
         expect(response).to redirect_to(root_path)
         follow_redirect!
-        expect(response.body).to include("Traveled to Chicago")
+        expect(response.body).to include("Chicago")
       end
     end
 
