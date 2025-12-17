@@ -110,6 +110,11 @@
     cursor: pointer;
     transition: all 0.2s;
 
+    @media (max-width: $breakpoint-small) {
+        padding: 2px 6px;
+        font-size: 10px;
+    }
+
     &:hover {
         background: linear-gradient(to bottom, #fff, #f0f0f0);
         border-color: $color-link;

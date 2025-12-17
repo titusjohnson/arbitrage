@@ -2,109 +2,96 @@
   <h1 class="travel__title">Travel</h1>
 
   <%
-    # Create a hash for quick location lookup by coordinates
-    locations_by_coords = @locations.index_by { |loc| [loc.x, loc.y] }
+    # Sort locations by distance from current location
+    sorted_locations = @locations.sort_by { |loc| current_game.current_location.distance_to(loc) }
   %>
 
-  <table class="locations-table">
-    <% (0..4).each do |y| %>
-      <tr>
-        <% (0..5).each do |x| %>
-          <% location = locations_by_coords[[x, y]] %>
-          <td class="location-cell <%= 'location-cell--empty' unless location %> <%= "location-cell--distance-#{current_game.current_location.distance_to(location)}" if location %>">
-            <% if location %>
-              <%
-                distance = current_game.current_location.distance_to(location)
-                cost = distance <= 1 ? 0 : (distance - 1) * 100
-                cost_label = cost == 0 ? "Free" : "$#{cost}"
-                is_current_location = location.id == current_game.current_location_id
-              %>
-              <%
-                has_buddy = @recently_visited_location_ids.include?(location.id)
+  <div class="locations-list">
+    <% sorted_locations.each do |location| %>
+      <%
+        distance = current_game.current_location.distance_to(location)
+        cost = distance <= 1 ? 0 : (distance - 1) * 100
+        cost_label = cost == 0 ? "Free" : "$#{cost}"
+        is_current_location = location.id == current_game.current_location_id
+        has_buddy = @recently_visited_location_ids.include?(location.id)
 
-                # Check if any active events affect this location
-                location_has_event_effects = false
-                current_game.game_events.active.includes(:event).each do |game_event|
-                  event = game_event.event
-                  if event.location_effects.present?
-                    # Check if any location effect modifiers match this location's tags
-                    location_tag_names = location.tags.map(&:name)
-                    ['price_modifiers', 'quantity_modifiers'].each do |modifier_type|
-                      next unless event.location_effects[modifier_type]
-                      event.location_effects[modifier_type].each do |modifier|
-                        if modifier['scoped_tags'] && modifier['scoped_tags']['location']
-                          if (modifier['scoped_tags']['location'] & location_tag_names).any?
-                            location_has_event_effects = true
-                            break
-                          end
-                        end
-                      end
-                      break if location_has_event_effects
-                    end
+        # Check if any active events affect this location
+        location_has_event_effects = false
+        current_game.game_events.active.includes(:event).each do |game_event|
+          event = game_event.event
+          if event.location_effects.present?
+            location_tag_names = location.tags.map(&:name)
+            ['price_modifiers', 'quantity_modifiers'].each do |modifier_type|
+              next unless event.location_effects[modifier_type]
+              event.location_effects[modifier_type].each do |modifier|
+                if modifier['scoped_tags'] && modifier['scoped_tags']['location']
+                  if (modifier['scoped_tags']['location'] & location_tag_names).any?
+                    location_has_event_effects = true
+                    break
                   end
-                  break if location_has_event_effects
                 end
-              %>
-              <div class="location-card <%= 'location-card--has-buddy' if has_buddy %> <%= 'location-card--has-events' if location_has_event_effects %>"
-                   data-controller="travel-confirmation <%= 'buddy-info' if has_buddy %>"
-                   data-travel-confirmation-from-value="<%= current_game.current_location.name %>"
-                   data-travel-confirmation-to-value="<%= location.name %>"
-                   data-travel-confirmation-cost-value="<%= cost %>"
-                   data-travel-confirmation-cost-label-value="<%= cost_label %>"
-                   <%= "data-buddy-info-location-id-value=\"#{location.id}\"" if has_buddy %>>
-                <h2 class="location-card__name">
-                  <%= location.name %>
-                  <% if location_has_event_effects %>
-                    <span style="color: #ff6b35; margin-left: 0.25rem;" title="Active events affecting this location">⚡</span>
-                  <% end %>
-                </h2>
-                <% if location.description.present? %>
-                  <p class="location-card__description"><%= location.description %></p>
-                <% end %>
-                <% if location.tags.any? %>
-                  <details class="tags-toggle">
-                    <summary class="tags-toggle__summary">…</summary>
-                    <div class="tags">
-                      <% location.tags.each do |tag| %>
-                        <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
-                      <% end %>
-                    </div>
-                  </details>
-                <% end %>
-                <div class="location-card__actions">
-                  <% if is_current_location %>
-                    <%= button_tag cost_label,
-                        title: "Travel. Advances Day",
-                        disabled: :disabled,
-                        class: "travel-button travel-button--distance-#{distance}" %>
-                  <% else %>
-                    <%= button_to cost_label, travel_path,
-                        params: { location_id: location.id },
-                        method: :post,
-                        title: "Travel. Advances Day",
-                        class: "travel-button travel-button--distance-#{distance}",
-                        data: {
-                          distance: distance,
-                          action: "click->travel-confirmation#confirm"
-                        } %>
-                  <% end %>
-                  <% if has_buddy %>
-                    <button type="button"
-                            class="info-button"
-                            data-action="click->buddy-info#showModal"
-                            data-buddy-info-location-id-param="<%= location.id %>"
-                            title="Check location bonuses with your buddy">
-                      Info
-                    </button>
-                  <% end %>
-                </div>
-              </div>
+              end
+              break if location_has_event_effects
+            end
+          end
+          break if location_has_event_effects
+        end
+      %>
+      <div class="location-card location-card--distance-<%= distance %> <%= 'location-card--current' if is_current_location %> <%= 'location-card--has-buddy' if has_buddy %> <%= 'location-card--has-events' if location_has_event_effects %>"
+           data-controller="travel-confirmation <%= 'buddy-info' if has_buddy %>"
+           data-travel-confirmation-from-value="<%= current_game.current_location.name %>"
+           data-travel-confirmation-to-value="<%= location.name %>"
+           data-travel-confirmation-cost-value="<%= cost %>"
+           data-travel-confirmation-cost-label-value="<%= cost_label %>"
+           <%= "data-buddy-info-location-id-value=\"#{location.id}\"" if has_buddy %>>
+        <div class="location-card__header">
+          <h2 class="location-card__name">
+            <%= location.name %>
+            <% if location_has_event_effects %>
+              <span style="color: #ff6b35; margin-left: 0.25rem;" title="Active events affecting this location">⚡</span>
             <% end %>
-          </td>
+          </h2>
+          <div class="location-card__actions">
+            <% if is_current_location %>
+              <span class="location-card__current-label">You are here</span>
+            <% else %>
+              <%= button_to cost_label, travel_path,
+                  params: { location_id: location.id },
+                  method: :post,
+                  title: "Travel. Advances Day",
+                  class: "travel-button travel-button--distance-#{distance}",
+                  data: {
+                    distance: distance,
+                    action: "click->travel-confirmation#confirm"
+                  } %>
+            <% end %>
+            <% if has_buddy %>
+              <button type="button"
+                      class="info-button"
+                      data-action="click->buddy-info#showModal"
+                      data-buddy-info-location-id-param="<%= location.id %>"
+                      title="Check location bonuses with your buddy">
+                Info
+              </button>
+            <% end %>
+          </div>
+        </div>
+        <% if location.description.present? %>
+          <p class="location-card__description"><%= location.description %></p>
         <% end %>
-      </tr>
+        <% if location.tags.any? %>
+          <details class="tags-toggle">
+            <summary class="tags-toggle__summary">…</summary>
+            <div class="tags">
+              <% location.tags.each do |tag| %>
+                <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
+              <% end %>
+            </div>
+          </details>
+        <% end %>
+      </div>
     <% end %>
-  </table>
+  </div>
 </div>
 
 <!-- Pre-rendered Buddy Info Modals (hidden) -->

@@ -10,9 +10,9 @@
     font-size: 0.75rem;
 
     &__container {
-        max-width: 960px;
+        max-width: $container-max-width;
         margin: 0 auto;
-        padding: 0 1rem;
+        padding: 0 $container-padding;
         display: flex;
         justify-content: space-between;
         align-items: center;

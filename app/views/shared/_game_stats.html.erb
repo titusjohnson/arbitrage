@@ -1,6 +1,4 @@
 <div id="game_stats" class="game-stats">
-  <span class="game-stats__location"><%= game.current_location.name %></span>
-  <span class="game-stats__separator">|</span>
   <span class="game-stats__day">Day <%= game.current_day %>/<%= game.day_target %></span>
   <span class="game-stats__separator">|</span>
   <span class="game-stats__cash">Cash: $<%= number_with_delimiter(game.cash.to_i) %></span>

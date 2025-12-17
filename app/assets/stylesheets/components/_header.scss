@@ -11,12 +11,12 @@
     z-index: 1000;
 
     &__container {
-        max-width: 1200px;
+        max-width: $container-max-width;
         margin: 0 auto;
-        padding: 12px 20px;
+        padding: 12px $container-padding;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        gap: 10px;
     }
 
     &__brand {
@@ -45,6 +45,7 @@
     &__nav {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 15px;
     }
 
@@ -64,6 +65,7 @@
     &__back-link {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
         color: $color-link;
         text-decoration: none;
@@ -92,16 +94,17 @@
 .game-stats {
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 4px 8px;
     font-size: 12px;
     color: $color-text;
 
-    &__location {
-        font-weight: bold;
-    }
-
     &__separator {
         color: #999;
+
+        @media (max-width: $breakpoint-small) {
+            display: none;
+        }
     }
 
     &__day {

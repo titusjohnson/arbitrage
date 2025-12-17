@@ -2,6 +2,7 @@
 // Variables
 // ============================================
 
+// Colors
 $color-bg-page: #eee;
 $color-bg-header: #ddd;
 $color-bg-content: #fff;
@@ -12,5 +13,13 @@ $color-link: #0066cc;
 $color-link-visited: #551a8b;
 $color-link-hover: #003399;
 
+// Typography
 $font-family-base: Verdana, Geneva, Arial, Helvetica, sans-serif;
 $font-size-base: 12px;
+
+// Layout - Narrow centered container
+$container-max-width: 760px;
+$container-padding: 16px;
+
+// Breakpoints
+$breakpoint-small: 480px;

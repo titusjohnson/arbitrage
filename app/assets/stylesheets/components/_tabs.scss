@@ -32,6 +32,11 @@
         position: relative;
         top: 1px;
 
+        @media (max-width: $breakpoint-small) {
+            padding: 3px 5px;
+            font-size: 10px;
+        }
+
         &:hover {
             background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
             color: $color-text;

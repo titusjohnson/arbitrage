@@ -63,9 +63,9 @@
 // ============================================
 
 .flash {
-    max-width: 1200px;
+    max-width: $container-max-width;
     margin: 15px auto;
-    padding: 0 20px;
+    padding: 0 $container-padding;
 
     &__message {
         padding: 10px 12px;
