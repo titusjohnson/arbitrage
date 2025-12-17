@@ -1,24 +1,9 @@
-# README
+# Arbitrage
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A Drug Wars clone built with Rails 8, Hotwire, and SQLite. Buy low, sell high across 30 locations trading 70 resources. Features tag-based event system, location affinities, buddy mechanics, and a global leaderboard.
 
-Things you may want to cover:
+Built entirely with Claude Code as an AI-assisted development experiment.
 
-* Ruby version
+**Stack:** Ruby 3.3.4, Rails 8, Turbo/Stimulus, SQLite, Kamal deployment
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+**License:** WTFPL - Do whatever you want with this code, just don't ever bother me about it.
