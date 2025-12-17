@@ -7,8 +7,8 @@ class HistoricalSimulationService
 
   def call
     ActiveRecord::Base.transaction do
-      # Pick the starting location first so we can use its population for quantity scaling
-      @starting_location = Location.order("RANDOM()").first
+      # Use the game's already-assigned starting location for quantity scaling
+      @starting_location = @game.current_location
       seed_game_resources
       simulate_historical_days
       reset_game_for_player_start
@@ -92,9 +92,6 @@ class HistoricalSimulationService
     # Reset last_refreshed_day so day 1 will trigger a fresh market update
     @game.game_resources.update_all(last_refreshed_day: 0)
 
-    @game.update_columns(
-      current_day: 1,
-      current_location_id: @starting_location.id
-    )
+    @game.update_columns(current_day: 1)
   end
 end

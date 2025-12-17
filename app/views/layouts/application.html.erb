@@ -26,18 +26,23 @@
     <header class="header">
       <div class="header__container">
         <div class="header__brand">
-          <%= link_to "Arbitrage", root_path, class: "header__brand-link" %>
+          <div class="header__brand-top">
+            <span class="header__logo">Arbitrage</span>
+            <span class="header__tagline">&nbsp;- buy low, sell high</span>
+          </div>
           <% if current_game %>
-            <div class="header__location">
-              <%= current_game.current_location.name %>
-            </div>
+            <%= render "shared/game_stats", game: current_game %>
           <% end %>
         </div>
         <% if current_game %>
           <%= render "shared/navbar" %>
-          <nav class="header__nav">
-            <%= render "shared/game_stats", game: current_game %>
-          </nav>
+        <% else %>
+          <%= link_to root_path, class: "header__back-link" do %>
+            <svg class="header__back-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm6 16H6V8h2v2h2V8h4v2h2V8h2v12z"/>
+            </svg>
+            Back to Game
+          <% end %>
         <% end %>
       </div>
     </header>

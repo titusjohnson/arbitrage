@@ -1,5 +1,9 @@
 <div id="game_stats" class="game-stats">
-  <div class="game-stats__item">Cash: $<%= number_with_delimiter(game.cash.to_i) %></div>
-  <div class="game-stats__item">Inventory: $<%= number_with_delimiter(game.inventory_value.to_i) %></div>
-  <div class="game-stats__item">Day <%= game.current_day %></div>
+  <span class="game-stats__location"><%= game.current_location.name %></span>
+  <span class="game-stats__separator">|</span>
+  <span class="game-stats__day">Day <%= game.current_day %>/<%= game.day_target %></span>
+  <span class="game-stats__separator">|</span>
+  <span class="game-stats__cash">Cash: $<%= number_with_delimiter(game.cash.to_i) %></span>
+  <span class="game-stats__separator">|</span>
+  <span class="game-stats__net-worth">Net Worth: $<%= number_with_delimiter(game.net_worth.to_i) %>/<%= number_with_delimiter(game.wealth_target.to_i) %></span>
 </div>
