@@ -31,6 +31,138 @@
 }
 
 // ============================================
+// Page (lowercase) - Content pages with prose
+// ============================================
+
+.page {
+    max-width: 720px;
+    margin: 0 auto;
+    font-size: 14px;
+
+    &__title {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin: 0 0 1.25rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid $color-border;
+        color: $color-text;
+    }
+
+    &__subtitle {
+        font-size: 0.9rem;
+        color: #666;
+        margin: -0.5rem 0 1.5rem 0;
+    }
+
+    // Prose typography for content pages
+    h2 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin: 1.75rem 0 0.75rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid $color-border-light;
+        color: $color-text;
+
+        &:first-of-type {
+            margin-top: 1rem;
+        }
+    }
+
+    h3 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 1.5rem 0 0.5rem 0;
+        color: $color-text;
+    }
+
+    p {
+        line-height: 1.6;
+        margin: 0 0 1rem 0;
+        color: #444;
+    }
+
+    a {
+        color: $color-link;
+        text-decoration: underline;
+
+        &:hover {
+            color: $color-link-hover;
+        }
+
+        &:visited {
+            color: $color-link-visited;
+        }
+    }
+
+    ul,
+    ol {
+        margin: 0 0 1.25rem 0;
+        padding-left: 1.5rem;
+        line-height: 1.6;
+        color: #444;
+    }
+
+    ul {
+        list-style-type: disc;
+    }
+
+    ol {
+        list-style-type: decimal;
+    }
+
+    li {
+        margin-bottom: 0.75rem;
+
+        // Nested paragraphs within list items
+        p {
+            margin: 0.75rem 0;
+        }
+
+        // Nested lists
+        ul,
+        ol {
+            margin: 0.5rem 0 0.5rem 0;
+        }
+    }
+
+    em {
+        font-style: italic;
+    }
+
+    strong {
+        font-weight: bold;
+    }
+
+    code {
+        font-family: "Courier New", Courier, monospace;
+        background: #f4f4f4;
+        padding: 0.15rem 0.35rem;
+        border-radius: 3px;
+        font-size: 0.9em;
+        border: 1px solid #ddd;
+    }
+
+    blockquote {
+        margin: 1rem 0 1.25rem 0;
+        padding: 0.75rem 1rem;
+        border-left: 4px solid $color-border;
+        background: #f9f9f9;
+        color: #555;
+        font-style: italic;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid $color-border-light;
+        margin: 1.5rem 0;
+    }
+}
+
+// ============================================
 // Form styles for buddy assignment
 // ============================================
 

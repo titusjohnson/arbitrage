@@ -1,0 +1,50 @@
+<div class="page">
+  <h1 class="page__title">About</h1>
+
+  <p>Arbitrage is a <a href="https://en.wikipedia.org/wiki/Drug_Wars_(video_game)" target="_blank">Drug Wars</a> clone. Buy low, sell high. Instead of drugs we've got a broad selection of mostly legal goods.</p>
+  <p>This Game is the result of Claude Code experimentation. With the exception of this page, the entirety of this codebase has been written by an LLM.</p>
+
+  <ol>
+      <li>Github: <a href="https://github.com/yourusername/yourrepo">Your Repository</a></li>
+      <li>Claude Code: <a href="https://claude.ai/">Claude.ai</a></li>
+  </ol>
+
+  <p>I wrote about half of this project using a personal Pro plan ($20/month) that I picked up a while ago just for general LLM usage. I get 2 to 3 hours of interactivity before I run out of tokens for the day, which isn't too bad at all, and is about as much extra time as I want to spend on a computer in the evening anyway. The last half (or more, depending on when this is read) I wrote on the $200/month plan. I ran out of tokens early on a Saturday when I still had a lot of ideas and motivation, so I caved.</p>
+
+  <p>I'm using Claude like an ephemeral team of devs and I'm the architect/pm/qa just chatting with the team over Slack and validating changes with a browser. I've experimented with prompt specificity quite a bit. I took some notes on my general experience, here at the end of 2025.</p>
+
+  <ul>
+      <li>The future is code review. So much code review. Claude can yack out a lot of decent Ruby code really fast, but I still need to read it, ingest it, and add it to my mental model so that I can instruct the agent appropriately during next steps. Unfortunately, Claude is slow enough that it's very easy to become disengaged from the work. A lot of tasks are right in that sweet spot of taking 5 to 10 minutes to chew through, especially when Claude knows it needs to write tests after and it goes into a debug & fix loop. This is long enough that my eyes and thoughts start to wander, and too short to switch over to another task. Plus, Claude is dirtying up my git stage and I haven't investigated parallel environments so I can keep moving manually.</li>
+
+    <li >I don't see how someone can effectively guide an agent unless that person has a deep knowledge of the system, its data model, and a firm opinion on what will be built next. Non-specific and non-technical prompts that leave space for Claude to be "creative" are very hit or miss. Sometimes you'll love the solution Claude came up with, but mostly you'll hate it. Claude sometimes asks clarifying questions, especially in Plan mode, but it makes bold assumptions once it's in execution mode.
+
+    <p>I asked Claude to implement the News pages' Timeline view before I had it implement some of the modeling that would log the data needed to build that view. It went off and tried its best. And I mean it, it really tried. It picked an arbitrary created_at timestamp that, with some creative thinking, might represent the timeline that was needed. It spent 10 minutes building an a bunch of functions, unit tests, and request tests that fundamentally were just torturing said timestamp to force a "timeline" that wasn't related to anything in the game. Hey, all the tests it wrote passed!</p>
+
+    <p>Ultimately, as a developer, we are responsible for the code we ship and review. For me the act of writing a hash, accessing a hash, writing a spec that validates the usage of said hash, all of these things cement a data structure into my memory. Using Claude I find myself reaching for things like route comments and schema definitions <em>a lot more</em> when I haven't personally written the code I'm working on. How does that table relate to another table? Where did we put that functionality?
+    </p>
+    </li>
+
+  <li>I've started to treat model context the same way we ideally want branches & PRs to be treated. Focused on one contextual change. As small as possible. Disposable. Ultimately, a liability. I want to start a new context as fast as I can, the longer my conversation goes with Claude and the more topics in the conversation, the more it starts to make dumb mistakes. Long Claude contexts give me the same itch between my shoulder blades that I get when I know my local branch is dirty, or getting too big.</li>
+
+  <li>Keep your git history clean. As soon as you have a logical change set that you're happy with, get it committed! You NEED the ability to reset a dirty branch to clean and re-try a with the prompt phrased differently.
+
+      <p>Avoid the temptation to have the agent "do one more thing" on a dirty branch you're happy with ESPECIALLY if that one more thing is not immediately related to what you just implemented. On multiple occasions I've reset my repo to a clean slate and started over on a feature because I forgot to commit,  asked Claude to make a join table, or something similar, and it went off the deep end and made changes I didn't agree with.</p>
+  </li>
+
+
+  <li>"Make a Plan and write it down" is a magic phrase, and goes hand-in-hand with keeping the context small. When I start a new feature I ask Claude to "make a plan for implementing X". I give Claude focused direction for a specific context, a couple of examples, and I explicitly tell it to make a plan for me to review. I now have a `docs/` folder in the project full of markdown files it has generated from each plan. I'll go back and forth with Claude refining the markdown file, and once I think it looks good I commit it and start a new context, tell Claude to read the new plan and start implementing it. I have not measured the effectiveness, but the vibe I have is Claude's chance of one-shotting a concept is greatly increased when it runs off of any level of formalized plan. Formalizing the plan also gives *you* the chance to fill in any assumptions you made. The more specific the plan gets the better.</li>
+
+  <li>Claude's knowledge of Ruby, Rails, and its ecosystem is complete, but Claude doesn't necessarily know what's current. Claude kept writing specs using shoulda matchers despite this project not using that gem. It tried to install the gem in the middle of other tasks. Shoulda was a huge thing early in Rails' life and seems to appear in 50% of the Rails Stack Overflow posts that I run across, so I guess this makes sense. Updating the CLAUDE file explicitly saying that we don't use shoulda mostly fixed the issue, now when it writes a shoulda matcher it catches the issue on a test run and refactors the usage out.</li>
+
+  <li>Claude is also happy to test every damn thing, it really wants to reach 100% testing coverage and it will do it in the most brute-force manner if left to its own devices. I've never seen so much `.private_send` usage in my life. Updating the CLAUDE file with instructions on how *you* want specs written is important.</li>
+
+  <li>Claude uses very interesting debugging techniques. I've seen it curl the local server and grep through the DOM to validate an issue, a lot. Actually, it told itself how to do this and logged it to the style guide. I've seen it fire up a Rails executor, instantiate the base action controller renderer, and `private_send` its way to rendering a specific template then use that DOM to diagnose an issue. I haven't captured any snippets yet, just watching them fly by, but it sure is in-depth.</li>
+
+  <li>It can make changes where you wouldn't expect that are tricky to catch. When I told Claude it was time to refactor the SCSS into partials, it also changed a bunch of colors, and probably more that I haven't really noticed. This is actually a Big Deal, there is no circumstance where I would expect a simple "refactor this big file into logical small files" pull request to also include a bunch of unit manipulation.
+
+      <p>This kind of goofup is also tricky to catch in Code Review. The Reviewer gets to look at the big file being deleted and XX number of small new files. Neither of these things have a proper history or diff. The reviewer would have to go line-by-line and compare sections of the deleted file to the new partials. I think in most cases a reviewer would be checking the naming and inclusion of partials, and probably run off of trust that the Jr. Engineer didn't decide that ORANGE was an appropriate new brand color.</p>
+
+      <p>Side note, it actually took Claude more time to do that refactor than it would have taken me to copy-paste into partials. It writes really, really verbose CSS, and it kinda choked on application.scss's size.</p></li>
+
+  </ul>
+</div>

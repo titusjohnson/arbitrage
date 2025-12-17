@@ -81,4 +81,7 @@ Rails.application.routes.draw do
 
   # Leaderboard
   get "leaderboard", to: "leaderboard#index"
+
+  # About
+  get "about", to: "about#index"
 end
