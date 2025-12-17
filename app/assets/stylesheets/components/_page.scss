@@ -20,7 +20,16 @@
     }
 
     &__Content {
-        // Default content styles
+        h2 {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 1.5rem 0 0.5rem 0;
+            color: $color-text;
+
+            &:first-child {
+                margin-top: 0;
+            }
+        }
     }
 
     &__Actions {

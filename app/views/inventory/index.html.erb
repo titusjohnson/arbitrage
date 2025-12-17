@@ -10,58 +10,43 @@
 
   <div class="Page__Content">
     <% if @inventory_items.any? %>
-      <table class="Table">
-        <thead>
-          <tr>
-            <th>Resource</th>
-            <th class="Table__Cell--right">Quantity</th>
-            <th class="Table__Cell--right">Purchase Price</th>
-            <th class="Table__Cell--right">Total Value</th>
-            <th class="Table__Cell--right">Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @inventory_items.each do |item| %>
-            <tr>
-              <td>
-                <strong><%= item.resource.name %></strong>
-                <% if item.resource.description.present? %>
-                  <br>
-                  <small class="Text--muted"><%= item.resource.description %></small>
-                <% end %>
-              </td>
-              <td class="Table__Cell--right">
-                <strong><%= item.quantity %> units</strong>
-                <br>
-                <small class="Text--muted">
-                  Size: <%= item.resource.inventory_size %> ea
-                </small>
-              </td>
-              <td class="Table__Cell--right">
-                <strong>$<%= number_with_delimiter(item.purchase_price, delimiter: ',') %></strong>
-                <br>
-                <small class="Text--muted">per unit</small>
-              </td>
-              <td class="Table__Cell--right">
-                <strong>$<%= number_with_delimiter(item.total_value, delimiter: ',') %></strong>
-                <br>
-                <small class="Text--muted">
-                  <%= item.resource.rarity.titleize %>
-                </small>
-              </td>
-              <td class="Table__Cell--right">
-                <small class="Text--muted">
-                  Day <%= item.purchase_day %>
+      <div class="inventory-list">
+        <% @inventory_items.each do |item| %>
+          <div class="inventory-card">
+            <div class="inventory-card__header">
+              <h3 class="inventory-card__name"><%= item.resource.name %></h3>
+              <div class="inventory-card__meta">
+                <span class="Text--muted">Size: <%= item.resource.inventory_size %></span>
+                <span class="Text--muted"><%= item.resource.rarity.titleize %></span>
+              </div>
+            </div>
+
+            <% if item.resource.description.present? %>
+              <p class="inventory-card__description"><%= item.resource.description %></p>
+            <% end %>
+
+            <div class="inventory-card__body">
+              <div class="inventory-card__purchase">
+                <div class="inventory-card__price">
+                  <strong>$<%= number_with_delimiter(item.purchase_price, delimiter: ',') %></strong>
+                  <span class="Text--muted">per unit</span>
+                </div>
+                <div class="inventory-card__details">
+                  <span class="Text--muted">Day <%= item.purchase_day %></span>
                   <% if item.purchase_location.present? %>
-                    <br>
-                    @ <%= item.purchase_location.name %>
+                    <span class="Text--muted">@ <%= item.purchase_location.name %></span>
                   <% end %>
-                </small>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+                </div>
+              </div>
+
+              <div class="inventory-card__position">
+                <span class="inventory-card__qty"><%= item.quantity %> units</span>
+                <span class="inventory-card__value">$<%= number_with_delimiter(item.total_value, delimiter: ',') %></span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
     <% else %>
       <div class="Alert Alert--info">
         <p>Your inventory is empty. Start trading to acquire resources!</p>
@@ -74,58 +59,41 @@
         Total Value: $<%= number_with_delimiter(@game.total_buddy_holdings_value.round(2), delimiter: ',') %>
       </p>
 
-      <table class="Table">
-        <thead>
-          <tr>
-            <th>Resource</th>
-            <th>Buddy</th>
-            <th class="Table__Cell--right">Quantity</th>
-            <th class="Table__Cell--right">Purchase Price</th>
-            <th class="Table__Cell--right">Target</th>
-            <th class="Table__Cell--right">Progress</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @buddy_holdings.each do |buddy| %>
-            <tr>
-              <td>
-                <strong><%= buddy.resource.name %></strong>
-              </td>
-              <td>
-                <%= link_to buddy.name, buddy_path(buddy) %>
-                <br>
-                <small class="Text--muted">@ <%= buddy.location.name %></small>
-              </td>
-              <td class="Table__Cell--right">
-                <strong><%= buddy.quantity %> units</strong>
-              </td>
-              <td class="Table__Cell--right">
-                <strong>$<%= number_with_delimiter(buddy.purchase_price.round(2), delimiter: ',') %></strong>
-                <br>
-                <small class="Text--muted">
-                  Total: $<%= number_with_delimiter(buddy.held_value.round(2), delimiter: ',') %>
-                </small>
-              </td>
-              <td class="Table__Cell--right">
-                +<%= buddy.target_profit_percent %>%
-                <br>
-                <small class="Text--muted">
-                  $<%= number_with_delimiter(buddy.target_price.round(2), delimiter: ',') %>
-                </small>
-              </td>
-              <td class="Table__Cell--right">
+      <div class="inventory-list">
+        <% @buddy_holdings.each do |buddy| %>
+          <div class="inventory-card inventory-card--buddy">
+            <div class="inventory-card__header">
+              <h3 class="inventory-card__name"><%= buddy.resource.name %></h3>
+              <div class="inventory-card__meta">
+                <span><%= link_to buddy.name, buddy_path(buddy) %></span>
+                <span class="Text--muted">@ <%= buddy.location.name %></span>
+              </div>
+            </div>
+
+            <div class="inventory-card__body">
+              <div class="inventory-card__purchase">
+                <div class="inventory-card__price">
+                  <strong>$<%= number_with_delimiter(buddy.purchase_price.round(2), delimiter: ',') %></strong>
+                  <span class="Text--muted">per unit</span>
+                </div>
+                <div class="inventory-card__target">
+                  <span>Target: +<%= buddy.target_profit_percent %>%</span>
+                  <span class="Text--muted">$<%= number_with_delimiter(buddy.target_price.round(2), delimiter: ',') %></span>
+                </div>
+              </div>
+
+              <div class="inventory-card__position">
+                <span class="inventory-card__qty"><%= buddy.quantity %> units</span>
+                <span class="inventory-card__value">$<%= number_with_delimiter(buddy.held_value.round(2), delimiter: ',') %></span>
                 <span class="<%= buddy.current_gain_percent >= 0 ? 'Text--success' : 'Text--danger' %>">
                   <%= buddy.current_gain_percent >= 0 ? '+' : '' %><%= buddy.current_gain_percent %>%
                 </span>
-                <br>
-                <small class="Text--muted">
-                  <%= buddy.progress_percent %>% to target
-                </small>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+                <span class="Text--muted"><%= buddy.progress_percent %>% to target</span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
     <% end %>
   </div>
 </div>

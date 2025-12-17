@@ -119,5 +119,86 @@ RSpec.describe GameTurnAction, type: :service do
         expect(action.errors[:base]).to include('Game is not active')
       end
     end
+
+    context 'with buddy auto-selling' do
+      let!(:game_resource) do
+        create(:game_resource,
+          game: game,
+          resource: resource,
+          current_price: 130.0,
+          base_price: 100.0
+        )
+      end
+
+      it 'processes buddy sales when target price is reached' do
+        buddy = create(:buddy, :holding,
+          game: game,
+          location: location,
+          resource: resource,
+          purchase_price: 100.0,
+          quantity: 5,
+          target_profit_percent: 25
+        )
+
+        action = GameTurnAction.new(game)
+        action.run
+
+        expect(buddy.reload.status).to eq('sold')
+      end
+
+      it 'does not sell when target price is not reached' do
+        game_resource.update!(current_price: 110.0)
+
+        buddy = create(:buddy, :holding,
+          game: game,
+          location: location,
+          resource: resource,
+          purchase_price: 100.0,
+          quantity: 5,
+          target_profit_percent: 25
+        )
+
+        action = GameTurnAction.new(game)
+        action.run
+
+        expect(buddy.reload.status).to eq('holding')
+      end
+
+      it 'creates an event log when buddy sells' do
+        buddy = create(:buddy, :holding,
+          game: game,
+          location: location,
+          resource: resource,
+          purchase_price: 100.0,
+          quantity: 5,
+          target_profit_percent: 25
+        )
+
+        expect {
+          GameTurnAction.new(game).run
+        }.to change { game.event_logs.count }.by(1)
+
+        log = game.event_logs.last
+        expect(log.message).to include(buddy.name)
+        expect(log.message).to include(resource.name)
+        expect(log.message).to include("profit")
+      end
+
+      it 'includes location name in event log' do
+        buddy = create(:buddy, :holding,
+          game: game,
+          location: location,
+          resource: resource,
+          purchase_price: 100.0,
+          quantity: 5,
+          target_profit_percent: 25
+        )
+
+        GameTurnAction.new(game).run
+
+        log = game.event_logs.last
+        expect(log.message).to include(location.name)
+      end
+    end
   end
 end

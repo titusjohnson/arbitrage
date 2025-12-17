@@ -13,7 +13,9 @@
         cost = distance <= 1 ? 0 : (distance - 1) * 100
         cost_label = cost == 0 ? "Free" : "$#{cost}"
         is_current_location = location.id == current_game.current_location_id
-        has_buddy = @recently_visited_location_ids.include?(location.id)
+        has_visited = @recently_visited_location_ids.include?(location.id)
+        has_buddy = @buddies_by_location[location.id].present?
+        buddy = @buddies_by_location[location.id]
 
         # Check if any active events affect this location
         location_has_event_effects = false
@@ -38,12 +40,12 @@
         end
       %>
       <div class="location-card location-card--distance-<%= distance %> <%= 'location-card--current' if is_current_location %> <%= 'location-card--has-buddy' if has_buddy %> <%= 'location-card--has-events' if location_has_event_effects %>"
-           data-controller="travel-confirmation <%= 'buddy-info' if has_buddy %>"
+           data-controller="travel-confirmation buddy-info"
            data-travel-confirmation-from-value="<%= current_game.current_location.name %>"
            data-travel-confirmation-to-value="<%= location.name %>"
            data-travel-confirmation-cost-value="<%= cost %>"
            data-travel-confirmation-cost-label-value="<%= cost_label %>"
-           <%= "data-buddy-info-location-id-value=\"#{location.id}\"" if has_buddy %>>
+           data-buddy-info-location-id-value="<%= location.id %>">
         <div class="location-card__header">
           <h2 class="location-card__name">
             <%= location.name %>
@@ -65,12 +67,12 @@
                     action: "click->travel-confirmation#confirm"
                   } %>
             <% end %>
-            <% if has_buddy %>
+            <% if has_visited %>
               <button type="button"
-                      class="info-button"
+                      class="info-button<%= ' info-button--buddy' if has_buddy %>"
                       data-action="click->buddy-info#showModal"
                       data-buddy-info-location-id-param="<%= location.id %>"
-                      title="Check location bonuses with your buddy">
+                      title="<%= has_buddy ? "#{buddy.name} reports market trends" : "View market intel from contacts" %>">
                 Info
               </button>
             <% end %>
@@ -94,16 +96,17 @@
   </div>
 </div>
 
-<!-- Pre-rendered Buddy Info Modals (hidden) -->
+<!-- Pre-rendered Market Info Modals (hidden) -->
 <div style="display: none;">
-  <% @recently_visited_location_ids.each do |location_id| %>
-    <% location = @locations.find { |l| l.id == location_id } %>
-    <% next unless location %>
-
-    <% game_resources = current_game.game_resources
-                                    .includes(:resource)
-                                    .order('resources.name')
-                                    .limit(20) %>
+  <% @locations.select { |loc| @recently_visited_location_ids.include?(loc.id) }.each do |location| %>
+    <%
+      buddy = @buddies_by_location[location.id]
+      has_buddy = buddy.present?
+      game_resources = current_game.game_resources
+                                   .includes(:resource, :price_histories)
+                                   .order('resources.name')
+                                   .limit(20)
+    %>
 
     <div id="buddy-modal-<%= location.id %>" class="modal__template">
       <div class="modal__content">
@@ -112,14 +115,22 @@
           <button class="modal__close" aria-label="Close">&times;</button>
         </div>
         <div class="modal__body">
-          <p class="modal__subtitle">Your buddy reports these prices (with location bonuses):</p>
+          <% if has_buddy %>
+            <p class="modal__subtitle"><%= buddy.name %> reports the following trends:</p>
+          <% else %>
+            <p class="modal__subtitle">Your contacts and RSS feeds report these prices:</p>
+          <% end %>
           <% if game_resources.any? %>
             <table class="prices-table">
               <thead>
                 <tr>
                   <th>Resource</th>
                   <th>Price</th>
-                  <th>Available</th>
+                  <% if has_buddy %>
+                    <th>Trend</th>
+                  <% else %>
+                    <th>Available</th>
+                  <% end %>
                 </tr>
               </thead>
               <tbody>
@@ -144,7 +155,22 @@
                         ➡️
                       <% end %>
                     </td>
-                    <td class="prices-table__available"><%= gr.available_quantity %></td>
+                    <% if has_buddy %>
+                      <td class="prices-table__trend">
+                        <%= peity_line_chart(
+                          gr.price_history_array(days: 30).compact,
+                          options: {
+                            width: 60,
+                            height: 16,
+                            stroke: "#0066cc",
+                            strokeWidth: 1.5,
+                            fill: "rgba(0, 102, 204, 0.1)"
+                          }
+                        ) %>
+                      </td>
+                    <% else %>
+                      <td class="prices-table__available"><%= gr.available_quantity %></td>
+                    <% end %>
                   </tr>
                 <% end %>
               </tbody>

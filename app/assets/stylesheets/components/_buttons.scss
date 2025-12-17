@@ -72,26 +72,42 @@
     font-family: $font-family-base;
     font-size: $font-size-base;
     font-weight: bold;
-    color: #fff;
-    background: linear-gradient(to bottom, #4a90e2 0%, #2e5c8a 100%);
-    border: 1px solid #1a4d7a;
+    color: #555;
+    background: linear-gradient(to bottom, #e8e8e8 0%, #c8c8c8 100%);
+    border: 1px solid #999;
     border-radius: 3px;
     box-shadow:
         0 1px 0 rgba(255, 255, 255, 0.5) inset,
         0 1px 2px rgba(0, 0, 0, 0.2);
-    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
     cursor: pointer;
     margin-left: 8px;
 
     &:hover {
-        background: linear-gradient(to bottom, #5a9ef2 0%, #3e6c9a 100%);
+        background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 100%);
+        border-color: #777;
     }
 
     &:active {
-        background: linear-gradient(to bottom, #2e5c8a 0%, #4a90e2 100%);
+        background: linear-gradient(to bottom, #c8c8c8 0%, #e8e8e8 100%);
         box-shadow:
             0 1px 2px rgba(0, 0, 0, 0.2) inset,
             0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    // Buddy variant - blue colored button
+    &--buddy {
+        color: #fff;
+        background: linear-gradient(to bottom, #4a90e2 0%, #2e5c8a 100%);
+        border-color: #1a4d7a;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+
+        &:hover {
+            background: linear-gradient(to bottom, #5a9ef2 0%, #3e6c9a 100%);
+        }
+
+        &:active {
+            background: linear-gradient(to bottom, #2e5c8a 0%, #4a90e2 100%);
+        }
     }
 }
 

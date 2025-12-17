@@ -20,7 +20,7 @@ RSpec.describe "Inventories", type: :request do
       get "/inventory"
 
       expect(response.body).to include("Gold Bar")
-      expect(response.body).to include("Quantity")
+      expect(response.body).to include("5 units")
     end
 
     it "displays empty state when inventory is empty" do

@@ -1,0 +1,108 @@
+// ============================================
+// Marketplace Components (BEM)
+// ============================================
+
+.resource-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resource-card {
+    padding: 12px;
+    background-color: #fafafa;
+    border: 1px solid $color-border-light;
+    border-radius: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+    &__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+    }
+
+    &__name {
+        font-size: 14px;
+        font-weight: bold;
+        margin: 0;
+        color: $color-text;
+    }
+
+    &__meta {
+        display: flex;
+        gap: 8px;
+        font-size: 11px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    &__description {
+        font-size: 11px;
+        color: #666;
+        margin: 0 0 8px 0;
+        line-height: 1.4;
+    }
+
+    &__body {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    &__market {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    &__price {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    &__price-value {
+        font-size: 16px;
+    }
+
+    &__sparkline {
+        margin-top: 4px;
+    }
+
+    &__trading {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    &__position {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    &__position-qty {
+        font-weight: bold;
+    }
+
+    &__actions {
+        display: flex;
+        gap: 4px;
+
+        form {
+            display: inline-block;
+            margin: 0;
+        }
+    }
+}

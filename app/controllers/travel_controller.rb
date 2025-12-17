@@ -2,6 +2,7 @@ class TravelController < ApplicationController
   def index
     @locations = Location.includes(:tags).all.order(:name)
     @recently_visited_location_ids = current_game.recently_visited_locations.pluck(:id)
+    @buddies_by_location = current_game.buddies.includes(:location).index_by(&:location_id)
   end
 
   def create
@@ -11,6 +12,14 @@ class TravelController < ApplicationController
       destination = Location.find(params[:location_id])
       travel_cost = extract_travel_cost(action.log.message)
       flash[:success] = cheeky_travel_message(destination.name, travel_cost)
+
+      # Add flash messages for any buddy sales
+      if action.buddy_sales.present?
+        flash[:buddy_sales] = action.buddy_sales.map do |sale|
+          buddy_sale_message(sale)
+        end
+      end
+
       redirect_to root_path
     else
       @locations = Location.all.order(:name)
@@ -82,5 +91,22 @@ class TravelController < ApplicationController
         "Dropped $%{cost} getting to %{destination}. Money talks, baby!"
       ]
     end
+  end
+
+  def buddy_sale_message(sale)
+    buddy = sale[:buddy]
+    resource = sale[:resource]
+    profit = sale[:profit].round(2)
+    location = sale[:location]
+
+    messages = [
+      "#{buddy.name} came through! Sold #{resource.name} for $#{profit} profit in #{location.name}.",
+      "Cha-ching! #{buddy.name} unloaded #{resource.name} at #{location.name}. +$#{profit}!",
+      "#{buddy.name} hit the target! #{resource.name} sold for $#{profit} profit.",
+      "Your buddy #{buddy.name} nailed it! $#{profit} profit on #{resource.name}.",
+      "#{buddy.name} says: 'Done deal!' #{resource.name} sold, $#{profit} in your pocket."
+    ]
+
+    messages.sample
   end
 end

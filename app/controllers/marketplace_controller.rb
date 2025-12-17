@@ -17,6 +17,12 @@ class MarketplaceController < ApplicationController
     @inventory_by_resource = @game.inventory_items
       .includes(resource: :tags)
       .group_by(&:resource_id)
+
+    # Find inventory items that have local affinity (for "Your Holdings" section)
+    inventory_resource_ids = @inventory_by_resource.keys
+    @holdings_with_affinity = all_game_resources.select do |gr|
+      inventory_resource_ids.include?(gr.resource_id) && local_resource_ids.include?(gr.resource_id)
+    end
   end
 
   def buy

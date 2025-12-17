@@ -4,6 +4,7 @@
 # Usage:
 #   action = GameTurnAction.new(game)
 #   action.run
+#   action.buddy_sales # => array of sale info hashes
 #
 # This action:
 #   - Updates all GameResource prices based on market forces
@@ -11,10 +12,12 @@
 #   - Creates parabolic price movements over time
 #   - Triggers random events (20% chance)
 #   - Decrements active event duration
+#   - Checks if any buddies should auto-sell
 #
 # Note: This action does NOT validate game_must_be_continuable since it's
 # called during travel and other actions that already validate this.
 class GameTurnAction < GameAction
+  attr_reader :buddy_sales
   # Override the continuable validation since this is an internal action
   # that runs as part of other validated actions
   validate :game_must_be_continuable, if: -> { false }
@@ -23,6 +26,7 @@ class GameTurnAction < GameAction
 
   def initialize(game)
     super(game, {})
+    @buddy_sales = []
   end
 
   def run
@@ -83,9 +87,9 @@ class GameTurnAction < GameAction
 
   def process_buddy_sales
     service = BuddyCheckService.new(game)
-    sales = service.call
+    @buddy_sales = service.call
 
-    sales.each do |sale|
+    @buddy_sales.each do |sale|
       buddy = sale[:buddy]
       resource = sale[:resource]
       profit = sale[:profit]

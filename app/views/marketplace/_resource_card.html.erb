@@ -1,0 +1,165 @@
+<%
+  resource = game_resource.resource
+  inventory_items = inventory_by_resource[resource.id] || []
+  has_inventory = inventory_items.any?
+
+  # Calculate location-adjusted price
+  has_affinity = game_resource.has_affinity_with?(location)
+  display_price = game_resource.price_at_location(location)
+  base_current_price = game_resource.current_price
+
+  if has_inventory
+    total_quantity = inventory_items.sum(&:quantity)
+    total_cost = inventory_items.sum { |item| item.purchase_price * item.quantity }
+    avg_purchase_price = total_cost / total_quantity
+    current_value = display_price * total_quantity
+    profit_loss = current_value - total_cost
+    profit_loss_pct = ((profit_loss / total_cost) * 100).round(1)
+    is_profit = profit_loss >= 0
+  end
+
+  # Calculate event effects
+  event_effects = EventEffectsService.new(game, game_resource, location: location).call
+  has_price_effect = event_effects[:price_multiplier] != 1.0
+  has_availability_effect = event_effects[:availability_multiplier] != 1.0
+
+  # Calculate price change from previous day
+  recent_prices = game_resource.price_histories.order(day: :desc).limit(2).pluck(:price)
+  if recent_prices.size >= 2
+    price_change = recent_prices[0] - recent_prices[1]
+    price_change_pct = ((price_change / recent_prices[1]) * 100).round(1)
+  else
+    price_change = 0
+    price_change_pct = 0
+  end
+
+  # Determine trend based on last 3 days
+  price_history = game_resource.price_history_array(days: 30).compact
+  if price_history.size >= 3
+    recent = price_history.last(3)
+    trend = if recent[2] > recent[1] && recent[1] > recent[0]
+              :rising
+            elsif recent[2] < recent[1] && recent[1] < recent[0]
+              :falling
+            else
+              :stable
+            end
+  else
+    trend = :stable
+  end
+
+  trend_icon = case trend
+               when :rising then "↗"
+               when :falling then "↘"
+               else "→"
+               end
+
+  trend_color = case trend
+                when :rising then "success"
+                when :falling then "danger"
+                else "muted"
+                end
+%>
+
+<div class="resource-card" id="resource_<%= game_resource.id %>">
+  <div class="resource-card__header">
+    <h3 class="resource-card__name"><%= resource.name %></h3>
+    <div class="resource-card__meta">
+      <span class="Text--muted">Size: <%= resource.inventory_size %></span>
+      <span class="Text--muted"><%= resource.rarity.titleize %></span>
+      <span class="Text--muted">Stock: <%= game_resource.available_quantity %><% if has_availability_effect %> (<%= event_effects[:availability_multiplier] > 1.0 ? '+' : '' %><%= ((event_effects[:availability_multiplier] - 1.0) * 100).round(0) %>%)<% end %></span>
+      <% if resource.tags.any? %>
+        <details class="tags-toggle tags-toggle--inline">
+          <summary class="tags-toggle__summary">...</summary>
+          <div class="tags">
+            <% resource.tags.each do |tag| %>
+              <span class="tag tag--<%= tag.name.gsub('_', '-') %>"><%= tag.name.gsub('_', ' ') %></span>
+            <% end %>
+          </div>
+        </details>
+      <% end %>
+    </div>
+  </div>
+
+  <% if resource.description.present? %>
+    <p class="resource-card__description"><%= resource.description %></p>
+  <% end %>
+
+  <div class="resource-card__body">
+    <div class="resource-card__market">
+      <div class="resource-card__price">
+        <strong class="resource-card__price-value">$<%= number_with_delimiter(display_price, delimiter: ',') %></strong>
+        <span class="Text--<%= trend_color %>">
+          <%= trend_icon %>
+          <% if price_change != 0 %>
+            <%= price_change > 0 ? '+' : '' %>$<%= number_with_delimiter(price_change.abs.round(2), delimiter: ',') %>
+            (<%= price_change_pct > 0 ? '+' : '' %><%= price_change_pct %>%)
+          <% end %>
+        </span>
+      </div>
+      <% if has_affinity %>
+        <%
+          affinity_diff = display_price - base_current_price
+          affinity_pct = ((affinity_diff / base_current_price) * 100).round(0) rescue 0
+        %>
+        <small class="<%= affinity_diff >= 0 ? 'Text--warning' : 'Text--info' %>" title="Local specialty: price swings exaggerated">
+          <% if affinity_diff >= 0 %>
+            ★ +<%= affinity_pct %>% local demand
+          <% else %>
+            ★ <%= affinity_pct %>% local surplus
+          <% end %>
+        </small>
+      <% end %>
+      <% if has_price_effect %>
+        <small class="<%= event_effects[:price_multiplier] > 1.0 ? 'Text--danger' : 'Text--success' %>">
+          <% if event_effects[:price_multiplier] > 1.0 %>
+            ↑ +<%= ((event_effects[:price_multiplier] - 1.0) * 100).round(0) %>% event
+          <% else %>
+            ↓ -<%= ((1.0 - event_effects[:price_multiplier]) * 100).round(0) %>% event
+          <% end %>
+        </small>
+      <% end %>
+      <div class="resource-card__sparkline">
+        <%= peity_line_chart(
+          game_resource.price_history_array(days: 30).compact,
+          options: {
+            width: 80,
+            height: 24,
+            stroke: "#0066cc",
+            strokeWidth: 1.5,
+            fill: "rgba(0, 102, 204, 0.1)"
+          }
+        ) %>
+      </div>
+    </div>
+
+    <div class="resource-card__trading">
+      <div class="resource-card__position">
+        <% if has_inventory %>
+          <span class="resource-card__position-qty"><%= total_quantity %> units</span>
+          <span class="Text--muted">@ $<%= number_with_delimiter(avg_purchase_price.round(2), delimiter: ',') %> avg</span>
+          <span class="<%= is_profit ? 'Text--success' : 'Text--danger' %>">
+            <%= is_profit ? '+' : '' %>$<%= number_with_delimiter(profit_loss.round(2), delimiter: ',') %>
+            (<%= is_profit ? '+' : '' %><%= profit_loss_pct %>%)
+          </span>
+        <% else %>
+          <span class="Text--muted">No position</span>
+        <% end %>
+      </div>
+      <div class="resource-card__actions">
+        <%= form_with url: marketplace_buy_path, method: :post do |form| %>
+          <%= form.hidden_field :game_resource_id, value: game_resource.id %>
+          <%= form.hidden_field :quantity, value: 1 %>
+          <%= form.submit "Buy", class: "button button--primary" %>
+        <% end %>
+        <% if has_inventory %>
+          <%= form_with url: marketplace_sell_path, method: :post do |form| %>
+            <%= form.hidden_field :game_resource_id, value: game_resource.id %>
+            <%= form.hidden_field :quantity, value: 1 %>
+            <%= form.submit "Sell", class: "button" %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

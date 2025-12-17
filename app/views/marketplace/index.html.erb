@@ -22,56 +22,52 @@
   </div>
 
   <div class="Page__Content">
+    <% if @holdings_with_affinity.any? %>
+      <h2>Your Holdings</h2>
+      <p class="Text--muted" style="margin-bottom: 12px;">Inventory items that <%= @location.name %> deals in</p>
+      <div class="resource-list">
+        <% @holdings_with_affinity.each do |game_resource| %>
+          <%= render partial: "marketplace/resource_card",
+                     locals: {
+                       game_resource: game_resource,
+                       game: @game,
+                       location: @location,
+                       inventory_by_resource: @inventory_by_resource
+                     } %>
+        <% end %>
+      </div>
+    <% end %>
+
     <% if @local_game_resources.any? %>
       <h2>Local Specialties</h2>
       <p class="Text--muted" style="margin-bottom: 12px;">Resources with special affinity to <%= @location.name %></p>
-      <table class="Table">
-        <thead>
-          <tr>
-            <th>Resource</th>
-            <th class="Table__Cell--right">Market Price</th>
-            <th class="Table__Cell--right">Your Position</th>
-            <th class="Table__Cell--right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @local_game_resources.each do |game_resource| %>
-            <%= render partial: "marketplace/resource_row",
-                       locals: {
-                         game_resource: game_resource,
-                         game: @game,
-                         location: @location,
-                         inventory_by_resource: @inventory_by_resource
-                       } %>
-          <% end %>
-        </tbody>
-      </table>
+      <div class="resource-list">
+        <% @local_game_resources.each do |game_resource| %>
+          <%= render partial: "marketplace/resource_card",
+                     locals: {
+                       game_resource: game_resource,
+                       game: @game,
+                       location: @location,
+                       inventory_by_resource: @inventory_by_resource
+                     } %>
+        <% end %>
+      </div>
     <% end %>
 
     <% if @global_game_resources.any? %>
       <h2>Global Market</h2>
       <p class="Text--muted" style="margin-bottom: 12px;">All available resources</p>
-      <table class="Table">
-        <thead>
-          <tr>
-            <th>Resource</th>
-            <th class="Table__Cell--right">Market Price</th>
-            <th class="Table__Cell--right">Your Position</th>
-            <th class="Table__Cell--right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @global_game_resources.each do |game_resource| %>
-            <%= render partial: "marketplace/resource_row",
-                       locals: {
-                         game_resource: game_resource,
-                         game: @game,
-                         location: @location,
-                         inventory_by_resource: @inventory_by_resource
-                       } %>
-          <% end %>
-        </tbody>
-      </table>
+      <div class="resource-list">
+        <% @global_game_resources.each do |game_resource| %>
+          <%= render partial: "marketplace/resource_card",
+                     locals: {
+                       game_resource: game_resource,
+                       game: @game,
+                       location: @location,
+                       inventory_by_resource: @inventory_by_resource
+                     } %>
+        <% end %>
+      </div>
     <% end %>
 
     <% if @local_game_resources.empty? && @global_game_resources.empty? %>

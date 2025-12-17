@@ -4,6 +4,7 @@
 #   action = TravelAction.new(game, destination_id: 5)
 #   if action.run
 #     # Travel successful
+#     action.buddy_sales # => array of buddy sale info
 #   else
 #     action.errors.full_messages
 #   end
@@ -18,6 +19,7 @@
 #   - Destination must be reachable (adjacent locations only for now)
 #
 class TravelAction < GameAction
+  attr_reader :buddy_sales
   attribute :destination_id, :integer
 
   validates :destination_id, presence: true
@@ -57,6 +59,9 @@ class TravelAction < GameAction
         errors.add(:base, "Failed to update market: #{game_turn_action.errors.full_messages.join(', ')}")
         raise ActiveRecord::Rollback
       end
+
+      # Capture any buddy sales that occurred
+      @buddy_sales = game_turn_action.buddy_sales
 
       # TODO: Trigger any location-based events or random encounters
       # trigger_travel_events
