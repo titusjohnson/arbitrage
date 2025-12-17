@@ -134,7 +134,7 @@ RSpec.describe Game, type: :model do
         game = create(:game, current_location: location, cash: 2000)
 
         log = game.event_logs.first
-        expect(log.message).to eq("Dazed and confused you wake up in New York with $2000 and a burning desire to arbitrage")
+        expect(log.message).to eq("Dazed and confused you wake up in New York with $2000 and a burning desire for arbitrage")
       end
 
       it "associates the log with the starting location" do
